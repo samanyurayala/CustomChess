@@ -1,4 +1,4 @@
-public class Knight {
+public class Knight implements StandardChessPiece {
     private Vector2d baseMovementTopRight = new Vector2d(2, 1);
     private Vector2d baseMovementTopLeft = new Vector2d(-2, 1);
     private Vector2d baseMovementBottomRight = new Vector2d(2, -1);
