@@ -10,43 +10,16 @@ import java.util.LinkedList;
 import java.util.Objects;
 
 public class Main {
-    public static LinkedList<BoardPiece> pieces = initChessPieces();;
+    public static LinkedList<BoardPiece> pieces = initChessPieces();
     public static BoardPiece selectedPiece = null;
     public static final int size = 80;
     public static void main(String[] args) throws IOException {
         Image[] chess_pieces = readChessPieces(size);
-        drawFrame(pieces, chess_pieces, size);
+        drawFrameHandleInput(pieces, chess_pieces, size);
     }
 
-    public static void drawFrame(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
-        final Color lightColor = new Color(0xeeeed2);
-        final Color darkColor = new Color(0x769656);
-        JFrame frame = new JFrame();
-        frame.setBounds(10, 10, size * 8, size * 8 + 28);
-        JPanel panel = new JPanel() {
-            @Override
-            public void paint(Graphics g) {
-                for (int row = 0; row < 8; row++) {
-                    for (int col = 0; col < 8; col++) {
-                        boolean light = (row + col) % 2 == 0;
-                        g.setColor(light ? lightColor : darkColor);
-                        g.fillRect(col * size, row * size, size, size);
-                    }
-                }
-                for (BoardPiece piece: pieces) {
-                    int index = 0;
-                    if (piece.name.equalsIgnoreCase("king")) index = 0;
-                    if (piece.name.equalsIgnoreCase("queen")) index = 1;
-                    if (piece.name.equalsIgnoreCase("bishop")) index = 2;
-                    if (piece.name.equalsIgnoreCase("knight")) index = 3;
-                    if (piece.name.equalsIgnoreCase("rook")) index = 4;
-                    if (piece.name.equalsIgnoreCase("pawn")) index = 5;
-                    if (!piece.isWhite) index += 6;
-                    g.drawImage(chess_pieces[index], piece.x, piece.y, this);
-                }
-            }
-        };
-        frame.add(panel);
+    public static void drawFrameHandleInput(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
+        JFrame frame = drawFrame(pieces, chess_pieces, size);
         frame.addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
@@ -91,6 +64,38 @@ public class Main {
         });
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+    }
+
+    private static JFrame drawFrame(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
+        final Color lightColor = new Color(0xeeeed2);
+        final Color darkColor = new Color(0x769656);
+        JFrame frame = new JFrame();
+        frame.setBounds(10, 10, size * 8, size * 8 + 28);
+        JPanel panel = new JPanel() {
+            @Override
+            public void paint(Graphics g) {
+                for (int row = 0; row < 8; row++) {
+                    for (int col = 0; col < 8; col++) {
+                        boolean light = (row + col) % 2 == 0;
+                        g.setColor(light ? lightColor : darkColor);
+                        g.fillRect(col * size, row * size, size, size);
+                    }
+                }
+                for (BoardPiece piece: pieces) {
+                    int index = 0;
+                    if (piece.name.equalsIgnoreCase("king")) index = 0;
+                    if (piece.name.equalsIgnoreCase("queen")) index = 1;
+                    if (piece.name.equalsIgnoreCase("bishop")) index = 2;
+                    if (piece.name.equalsIgnoreCase("knight")) index = 3;
+                    if (piece.name.equalsIgnoreCase("rook")) index = 4;
+                    if (piece.name.equalsIgnoreCase("pawn")) index = 5;
+                    if (!piece.isWhite) index += 6;
+                    g.drawImage(chess_pieces[index], piece.x, piece.y, this);
+                }
+            }
+        };
+        frame.add(panel);
+        return frame;
     }
 
     public static Image[] readChessPieces(int size) throws IOException{
