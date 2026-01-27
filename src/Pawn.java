@@ -1,4 +1,4 @@
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class Pawn extends BoardPiece {
     private final Vector2d[] baseWhiteMovement = {
@@ -13,14 +13,14 @@ public class Pawn extends BoardPiece {
             new Vector2d(-1, 1)  // Attack Movement Right Black
     };
 
-    public Pawn(int xPos, int yPos, boolean isWhite, LinkedList<BoardPiece> pieces, int scale) {
+    public Pawn(int xPos, int yPos, boolean isWhite, ArrayList<BoardPiece> pieces, int scale) {
         super(xPos, yPos, isWhite, pieces, scale);
     }
 
-    public LinkedList<Vector2d> getLegalSquares() {
+    public ArrayList<Vector2d> getLegalSquares() {
         int currentXPos = xPos;
         int currentYPos = yPos;
-        LinkedList<Vector2d> moves = new LinkedList<>();
+        ArrayList<Vector2d> moves = new ArrayList<>();
         Vector2d[] colorMoves = new Vector2d[3];
         if (isWhite) System.arraycopy(baseWhiteMovement, 0, colorMoves, 0, 3);
         else System.arraycopy(baseBlackMovement, 0, colorMoves, 0, 3);
@@ -35,7 +35,7 @@ public class Pawn extends BoardPiece {
                     if (getPieceVec2D(testVector2) == null && !hasMoved) moves.add(testVector2);
                 }
             } else {
-                if (piece != null) moves.add(testVector);
+                if (piece != null && piece.isWhite != isWhite) moves.add(testVector);
             }
         }
         return moves;

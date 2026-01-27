@@ -1,4 +1,4 @@
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class Rook extends BoardPiece {
     private final Vector2d[] baseMovement = {
@@ -8,14 +8,14 @@ public class Rook extends BoardPiece {
             new Vector2d(0, 1)  // Vertical Down
     };
 
-    public Rook(int xPos, int yPos, boolean isWhite, LinkedList<BoardPiece> pieces, int scale) {
+    public Rook(int xPos, int yPos, boolean isWhite, ArrayList<BoardPiece> pieces, int scale) {
         super(xPos, yPos, isWhite, pieces, scale);
     }
 
-    public LinkedList<Vector2d> getLegalSquares() {
+    public ArrayList<Vector2d> getLegalSquares() {
         int currentXPos = xPos;
         int currentYPos = yPos;
-        LinkedList<Vector2d> moves = new LinkedList<>();
+        ArrayList<Vector2d> moves = new ArrayList<>();
         for (Vector2d vector2d: baseMovement) {
             for (int i = 1; i < 8; i++) {
                 Vector2d testVector = new Vector2d(currentXPos + vector2d.x * i, currentYPos + vector2d.y * i);

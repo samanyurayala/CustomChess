@@ -6,11 +6,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Main {
-    public static LinkedList<BoardPiece> pieces = initChessPieces();
+    public static ArrayList<BoardPiece> pieces = initChessPieces();
     public static BoardPiece selectedPiece = null;
     public static final int size = 80;
     public static boolean isWhiteTurn = true;
@@ -19,7 +19,7 @@ public class Main {
         drawFrameHandleInput(pieces, chess_pieces, size);
     }
 
-    public static void drawFrameHandleInput(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
+    public static void drawFrameHandleInput(ArrayList<BoardPiece> pieces, Image[] chess_pieces, int size) {
         JFrame frame = drawFrame(pieces, chess_pieces, size);
         frame.addMouseMotionListener(new MouseMotionListener() {
             @Override
@@ -73,7 +73,7 @@ public class Main {
         frame.setVisible(true);
     }
 
-    private static JFrame drawFrame(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
+    private static JFrame drawFrame(ArrayList<BoardPiece> pieces, Image[] chess_pieces, int size) {
         final Color lightColor = new Color(0xEAE9D2);
         final Color darkColor = new Color(0x4B7399);
         JFrame frame = new JFrame();
@@ -118,8 +118,8 @@ public class Main {
         return chess_pieces;
     }
 
-    public static LinkedList<BoardPiece> initChessPieces() {
-        LinkedList<BoardPiece> pieces = new LinkedList<>();
+    public static ArrayList<BoardPiece> initChessPieces() {
+        ArrayList<BoardPiece> pieces = new ArrayList<>();
         BoardPiece piece1 = new Rook(0, 0,false, pieces, size);
         BoardPiece piece2 = new Knight(1, 0,false, pieces, size);
         BoardPiece piece3 = new Bishop(2, 0,false, pieces, size);
