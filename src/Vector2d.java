@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Vector2d {
     public int x;
     public int y;
@@ -7,11 +9,16 @@ public class Vector2d {
         this.y = y;
     }
 
-    public Vector2d negative() {
-        return new Vector2d(-x, -y);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vector2d vector2d = (Vector2d) o;
+        return x == vector2d.x && y == vector2d.y;
     }
 
-    public Vector2d reverse() {
-        return new Vector2d(y, x);
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 }

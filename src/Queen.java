@@ -33,10 +33,4 @@ public class Queen extends BoardPiece {
         }
         return moves;
     }
-
-    public void printMoves(LinkedList<Vector2d> moves) {
-        for (Vector2d move : moves) {
-            System.out.print(move.x + " " + move.y + " ");
-        }
-    }
 }

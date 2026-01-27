@@ -29,17 +29,15 @@ public class Pawn extends BoardPiece {
             if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) continue;
             BoardPiece piece = getPieceVec2D(testVector);
             if (vector2d.x == 0) {
-                if (piece == null) moves.add(testVector);
+                if (piece == null) {
+                    moves.add(testVector);
+                    Vector2d testVector2 = new Vector2d(currentXPos, currentYPos + vector2d.y * 2);
+                    if (getPieceVec2D(testVector2) == null && !hasMoved) moves.add(testVector2);
+                }
             } else {
                 if (piece != null) moves.add(testVector);
             }
         }
         return moves;
-    }
-
-    public void printMoves(LinkedList<Vector2d> moves) {
-        for (Vector2d move : moves) {
-            System.out.print(move.x + " " + move.y + " ");
-        }
     }
 }

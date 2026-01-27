@@ -13,8 +13,9 @@ public class Main {
     public static LinkedList<BoardPiece> pieces = initChessPieces();
     public static BoardPiece selectedPiece = null;
     public static final int size = 80;
+    public static boolean isWhiteTurn = true;
     public static void main(String[] args) throws IOException {
-        Image[] chess_pieces = readChessPieces(size);
+        final Image[] chess_pieces = readChessPieces(size);
         drawFrameHandleInput(pieces, chess_pieces, size);
     }
 
@@ -47,12 +48,14 @@ public class Main {
                 if (selectedPiece != null) {
                     System.out.println("TRUE");
                     selectedPiece.printMoves(selectedPiece.getLegalSquares());
+                    if (selectedPiece instanceof Pawn) System.out.println(selectedPiece.hasMoved);
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (selectedPiece != null) selectedPiece.move(e.getX() / size, e.getY() / size);
+                if (selectedPiece == null) return;
+                selectedPiece.move(e.getX() / size, e.getY() / size);
                 frame.repaint();
             }
 
