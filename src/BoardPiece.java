@@ -5,10 +5,9 @@ public class BoardPiece {
     public int scale;
     public boolean isWhite;
     public LinkedList<BoardPiece> pieces;
-    public String name;
     public int x, y;
 
-    public BoardPiece(int xPos, int yPos, String name, boolean isWhite, LinkedList<BoardPiece> pieces, int scale) {
+    public BoardPiece(int xPos, int yPos, boolean isWhite, LinkedList<BoardPiece> pieces, int scale) {
         this.xPos = xPos;
         this.yPos = yPos;
         this.scale = scale;
@@ -16,7 +15,6 @@ public class BoardPiece {
         y = yPos * scale;
         this.isWhite = isWhite;
         this.pieces = pieces;
-        this.name = name;
         pieces.add(this);
     }
 
@@ -39,5 +37,22 @@ public class BoardPiece {
 
     public void kill() {
         pieces.remove(this);
+    }
+
+    public LinkedList<Vector2d> getLegalSquares() {
+        return null;
+    };
+
+    public void printMoves(LinkedList<Vector2d> moves) {
+
+    }
+
+    public BoardPiece getPieceVec2D(Vector2d vec) {;
+        for (BoardPiece piece: pieces) {
+            if (piece.xPos == vec.x && piece.yPos == vec.y) {
+                return piece;
+            }
+        }
+        return null;
     }
 }

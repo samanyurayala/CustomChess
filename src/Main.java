@@ -44,6 +44,10 @@ public class Main {
             @Override
             public void mousePressed(MouseEvent e) {
                 selectedPiece = getPiece(e.getX(), e.getY());
+                if (selectedPiece != null) {
+                    System.out.println("TRUE");
+                    selectedPiece.printMoves(selectedPiece.getLegalSquares());
+                }
             }
 
             @Override
@@ -67,8 +71,8 @@ public class Main {
     }
 
     private static JFrame drawFrame(LinkedList<BoardPiece> pieces, Image[] chess_pieces, int size) {
-        final Color lightColor = new Color(0xeeeed2);
-        final Color darkColor = new Color(0x769656);
+        final Color lightColor = new Color(0xEAE9D2);
+        final Color darkColor = new Color(0x4B7399);
         JFrame frame = new JFrame();
         frame.setBounds(10, 10, size * 8, size * 8 + 28);
         JPanel panel = new JPanel() {
@@ -83,12 +87,12 @@ public class Main {
                 }
                 for (BoardPiece piece: pieces) {
                     int index = 0;
-                    if (piece.name.equalsIgnoreCase("king")) index = 0;
-                    if (piece.name.equalsIgnoreCase("queen")) index = 1;
-                    if (piece.name.equalsIgnoreCase("bishop")) index = 2;
-                    if (piece.name.equalsIgnoreCase("knight")) index = 3;
-                    if (piece.name.equalsIgnoreCase("rook")) index = 4;
-                    if (piece.name.equalsIgnoreCase("pawn")) index = 5;
+                    if (piece instanceof King) index = 0;
+                    if (piece instanceof Queen) index = 1;
+                    if (piece instanceof Bishop) index = 2;
+                    if (piece instanceof Knight) index = 3;
+                    if (piece instanceof Rook) index = 4;
+                    if (piece instanceof Pawn) index = 5;
                     if (!piece.isWhite) index += 6;
                     g.drawImage(chess_pieces[index], piece.x, piece.y, this);
                 }
@@ -113,38 +117,38 @@ public class Main {
 
     public static LinkedList<BoardPiece> initChessPieces() {
         LinkedList<BoardPiece> pieces = new LinkedList<>();
-        BoardPiece piece1 = new BoardPiece(0, 0,"rook", false, pieces, size);
-        BoardPiece piece2 = new BoardPiece(1, 0,"knight", false, pieces, size);
-        BoardPiece piece3 = new BoardPiece(2, 0,"bishop", false, pieces, size);
-        BoardPiece piece4 = new BoardPiece(3, 0,"queen", false, pieces, size);
-        BoardPiece piece5 = new BoardPiece(4, 0,"king", false, pieces, size);
-        BoardPiece piece6 = new BoardPiece(5, 0,"bishop", false, pieces, size);
-        BoardPiece piece7 = new BoardPiece(6, 0,"knight", false, pieces, size);
-        BoardPiece piece8 = new BoardPiece(7, 0,"rook", false, pieces, size);
-        BoardPiece piece9 = new BoardPiece(0, 1,"pawn", false, pieces, size);
-        BoardPiece piece10 = new BoardPiece(1, 1,"pawn", false, pieces, size);
-        BoardPiece piece11 = new BoardPiece(2, 1,"pawn", false, pieces, size);
-        BoardPiece piece12 = new BoardPiece(3, 1,"pawn", false, pieces, size);
-        BoardPiece piece13 = new BoardPiece(4, 1,"pawn", false, pieces, size);
-        BoardPiece piece14 = new BoardPiece(5, 1,"pawn", false, pieces, size);
-        BoardPiece piece15 = new BoardPiece(6, 1,"pawn", false, pieces, size);
-        BoardPiece piece16 = new BoardPiece(7, 1,"pawn", false, pieces, size);
-        BoardPiece piece17 = new BoardPiece(0, 7,"rook", true, pieces, size);
-        BoardPiece piece18 = new BoardPiece(1, 7,"knight", true, pieces, size);
-        BoardPiece piece19 = new BoardPiece(2, 7,"bishop", true, pieces, size);
-        BoardPiece piece20 = new BoardPiece(3, 7,"queen", true, pieces, size);
-        BoardPiece piece21 = new BoardPiece(4, 7,"king", true, pieces, size);
-        BoardPiece piece22 = new BoardPiece(5, 7,"bishop", true, pieces, size);
-        BoardPiece piece23 = new BoardPiece(6, 7,"knight", true, pieces, size);
-        BoardPiece piece24 = new BoardPiece(7, 7,"rook", true, pieces, size);
-        BoardPiece piece25 = new BoardPiece(0, 6,"pawn", true, pieces, size);
-        BoardPiece piece26 = new BoardPiece(1, 6,"pawn", true, pieces, size);
-        BoardPiece piece27 = new BoardPiece(2, 6,"pawn", true, pieces, size);
-        BoardPiece piece28 = new BoardPiece(3, 6,"pawn", true, pieces, size);
-        BoardPiece piece29 = new BoardPiece(4, 6,"pawn", true, pieces, size);
-        BoardPiece piece30 = new BoardPiece(5, 6,"pawn", true, pieces, size);
-        BoardPiece piece31 = new BoardPiece(6, 6,"pawn", true, pieces, size);
-        BoardPiece piece32 = new BoardPiece(7, 6,"pawn", true, pieces, size);
+        BoardPiece piece1 = new Rook(0, 0,false, pieces, size);
+        BoardPiece piece2 = new Knight(1, 0,false, pieces, size);
+        BoardPiece piece3 = new Bishop(2, 0,false, pieces, size);
+        BoardPiece piece4 = new Queen(3, 0,false, pieces, size);
+        BoardPiece piece5 = new King(4, 0,false, pieces, size);
+        BoardPiece piece6 = new Bishop(5, 0,false, pieces, size);
+        BoardPiece piece7 = new Knight(6, 0,false, pieces, size);
+        BoardPiece piece8 = new Rook(7, 0,false, pieces, size);
+        BoardPiece piece9 = new Pawn(0, 1,false, pieces, size);
+        BoardPiece piece10 = new Pawn(1, 1,false, pieces, size);
+        BoardPiece piece11 = new Pawn(2, 1,false, pieces, size);
+        BoardPiece piece12 = new Pawn(3, 1,false, pieces, size);
+        BoardPiece piece13 = new Pawn(4, 1,false, pieces, size);
+        BoardPiece piece14 = new Pawn(5, 1,false, pieces, size);
+        BoardPiece piece15 = new Pawn(6, 1,false, pieces, size);
+        BoardPiece piece16 = new Pawn(7, 1,false, pieces, size);
+        BoardPiece piece17 = new Rook(0, 7,true, pieces, size);
+        BoardPiece piece18 = new Knight(1, 7,true, pieces, size);
+        BoardPiece piece19 = new Bishop(2, 7,true, pieces, size);
+        BoardPiece piece20 = new Queen(3, 7,true, pieces, size);
+        BoardPiece piece21 = new King(4, 7,true, pieces, size);
+        BoardPiece piece22 = new Bishop(5, 7,true, pieces, size);
+        BoardPiece piece23 = new Knight(6, 7,true, pieces, size);
+        BoardPiece piece24 = new Rook(7, 7,true, pieces, size);
+        BoardPiece piece25 = new Pawn(0, 6,true, pieces, size);
+        BoardPiece piece26 = new Pawn(1, 6,true, pieces, size);
+        BoardPiece piece27 = new Pawn(2, 6,true, pieces, size);
+        BoardPiece piece28 = new Pawn(3, 6,true, pieces, size);
+        BoardPiece piece29 = new Pawn(4, 6,true, pieces, size);
+        BoardPiece piece30 = new Pawn(5, 6,true, pieces, size);
+        BoardPiece piece31 = new Pawn(6, 6,true, pieces, size);
+        BoardPiece piece32 = new Pawn(7, 6,true, pieces, size);
         return pieces;
     }
 
