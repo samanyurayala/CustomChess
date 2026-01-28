@@ -30,4 +30,12 @@ public class King extends BoardPiece {
         }
         return moves;
     }
+
+    public boolean isInCheck(Game board) {
+        Vector2d currentPos = new Vector2d(xPos, yPos);
+        for (BoardPiece piece: board.pieces) {
+            if (piece.isWhite != isWhite && !(piece instanceof King) && piece.getLegalSquares(board).contains(currentPos)) return true;
+        }
+        return false;
+    }
 }
