@@ -27,6 +27,11 @@ public class Rook extends BoardPiece {
                 } else moves.add(testVector);
             }
         }
+        BoardPiece king = board.getPiece(King.class, isWhite());
+        if (king.isInCheck(board)) {
+            ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
+            moves.retainAll(squares);
+        }
         return moves;
     }
 

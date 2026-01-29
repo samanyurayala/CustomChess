@@ -40,6 +40,11 @@ public class Pawn extends BoardPiece {
                 if (piece != null && piece.isWhite() != isWhite()) moves.add(testVector);
             }
         }
+        BoardPiece king = board.getPiece(King.class, isWhite());
+        if (king.isInCheck(board)) {
+            ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
+            moves.retainAll(squares);
+        }
         return moves;
     }
 

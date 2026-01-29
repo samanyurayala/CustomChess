@@ -23,6 +23,14 @@ public class BoardPiece {
         return new ArrayList<>();
     }
 
+    public boolean isInCheck(Game board) {
+        return false;
+    }
+
+    public ArrayList<Vector2d> getSquaresBetweenCheckingPiece(Game board) {
+        return new ArrayList<>();
+    }
+
     public boolean isWhite() {
         return isWhite;
     }

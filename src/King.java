@@ -43,9 +43,35 @@ public class King extends BoardPiece {
     public boolean isInCheck(Game board) {
         Vector2d currentPos = new Vector2d(getXPos(), getYPos());
         for (BoardPiece piece: board.getPieces()) {
-            if (piece.isWhite() != isWhite() && !(piece instanceof King) && piece.getAttackSquares(board).contains(currentPos)) return true;
+            if (piece.isWhite() != isWhite() && piece.getAttackSquares(board).contains(currentPos)) return true;
         }
         return false;
+    }
+
+    public ArrayList<BoardPiece> getCheckingPieces(Game board) {
+        ArrayList<BoardPiece> pieces = new ArrayList<>();
+        Vector2d currentPos = new Vector2d(getXPos(), getYPos());
+        for (BoardPiece piece: board.getPieces()) {
+            if (piece.isWhite() != isWhite() && piece.getAttackSquares(board).contains(currentPos)) pieces.add(piece);
+        }
+        return pieces;
+    }
+
+    public ArrayList<Vector2d> getSquaresBetweenCheckingPiece(Game board) {
+        ArrayList<Vector2d> squares = new ArrayList<>();
+        ArrayList<BoardPiece> checkingPieces = getCheckingPieces(board);
+        if (checkingPieces.size() != 1) return new ArrayList<>();
+        BoardPiece checkingPiece = checkingPieces.getFirst();
+        Vector2d checkingPiecePosition = new Vector2d(checkingPiece.getXPos(), checkingPiece.getYPos());
+        if (!(checkingPiece instanceof Knight) && !(checkingPiece instanceof Pawn)) {
+            int adderX = Integer.compare(getXPos() - checkingPiecePosition.x, 0);
+            int adderY = Integer.compare(getYPos() - checkingPiecePosition.y, 0);
+            for (int i = 1; i < Math.max(Math.abs(getXPos() - checkingPiecePosition.x), Math.abs(getYPos() - checkingPiecePosition.y)); i++) {
+                squares.add(new Vector2d(getXPos() - adderX * i, getYPos() - adderY * i));
+            }
+        }
+        squares.add(checkingPiecePosition);
+        return squares;
     }
 
     public ArrayList<Vector2d> getSquaresControlledByEnemy(Game board) {

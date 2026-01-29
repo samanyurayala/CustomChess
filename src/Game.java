@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class Game {
@@ -28,7 +29,7 @@ public class Game {
     }
 
     public void selectPiece(int x, int y) {
-        selectedPiece = getPiece(x, y);
+        selectedPiece = getPieceXY(x, y);
     }
 
     public void dropPiece(int x, int y) {
@@ -37,7 +38,9 @@ public class Game {
     }
 
     public void move(int xPos, int yPos, BoardPiece piece) {
-        BoardPiece piece2 = getPiece(xPos * SIZE, yPos * SIZE);
+        System.out.println(Arrays.deepToString(piece.getSquaresBetweenCheckingPiece(this).toArray()));
+        BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
+        System.out.println(piece.isInCheck(this));
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
         if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite())) {
@@ -56,9 +59,25 @@ public class Game {
         isWhiteTurn = !isWhiteTurn;
     }
 
-    public BoardPiece getPiece(int x, int y) {
+    public BoardPiece getPiece(Class<?> test, boolean isWhite) {
+        for (BoardPiece piece : pieces) {
+            if (test.isInstance(piece) && piece.isWhite() == isWhite) return piece;
+        }
+        return null;
+    }
+
+    public BoardPiece getPieceXY(int x, int y) {
         int xPos = x / SIZE;
         int yPos = y / SIZE;
+        for (BoardPiece piece: pieces) {
+            if (piece.getXPos() == xPos && piece.getYPos() == yPos) {
+                return piece;
+            }
+        }
+        return null;
+    }
+
+    public BoardPiece getPieceXPosYPos(int xPos, int yPos) {
         for (BoardPiece piece: pieces) {
             if (piece.getXPos() == xPos && piece.getYPos() == yPos) {
                 return piece;

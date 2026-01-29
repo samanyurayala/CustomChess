@@ -17,7 +17,13 @@ public class Knight extends BoardPiece {
     }
 
     public ArrayList<Vector2d> getLegalMoves(Game board) {
-        return getAttackSquares(board);
+        ArrayList<Vector2d> moves = getAttackSquares(board);
+        BoardPiece king = board.getPiece(King.class, isWhite());
+        if (king.isInCheck(board)) {
+            ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
+            moves.retainAll(squares);
+        }
+        return moves;
     }
 
     public ArrayList<Vector2d> getAttackSquares(Game board) {
