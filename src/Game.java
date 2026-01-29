@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Game {
-    public BoardPiece selectedPiece = null;
-    public ArrayList<BoardPiece> pieces;
-    public boolean isWhiteTurn;
-    public Image[] chessPieceImgs;
-    public final int SIZE;
+    private BoardPiece selectedPiece = null;
+    private ArrayList<BoardPiece> pieces;
+    private boolean isWhiteTurn;
+    private Image[] chessPieceImgs;
+    private final int SIZE;
 
 
     public Game(int size) throws IOException {
@@ -22,8 +22,8 @@ public class Game {
 
     public void movePiece(int x, int y) {
         if (selectedPiece != null) {
-            selectedPiece.x = x - SIZE / 2;
-            selectedPiece.y = y - SIZE / 2;
+            selectedPiece.setX(x - SIZE / 2);
+            selectedPiece.setY(y - SIZE / 2);
         }
     }
 
@@ -38,21 +38,21 @@ public class Game {
 
     public void move(int xPos, int yPos, BoardPiece piece) {
         BoardPiece piece2 = getPiece(xPos * SIZE, yPos * SIZE);
-        ArrayList<Vector2d> legalSquares = piece.getLegalSquares(this);
+        ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
-        if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite)) {
-            piece.x = piece.xPos * SIZE;
-            piece.y = piece.yPos * SIZE;
+        if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite())) {
+            piece.setX(piece.getXPos() * SIZE);
+            piece.setY(piece.getYPos() * SIZE);
             return;
         }
-        if (piece2 != null && piece2.isWhite != piece.isWhite) {
+        if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
             kill(piece2);
         }
-        piece.xPos = xPos;
-        piece.yPos = yPos;
-        piece.x = xPos * SIZE;
-        piece.y = yPos * SIZE;
-        if (!piece.hasMoved) piece.hasMoved = true;
+        piece.setXPos(xPos);
+        piece.setYPos(yPos);
+        piece.setX(xPos * SIZE);
+        piece.setY(yPos * SIZE);
+        if (!piece.hasMoved()) piece.setHasMoved(true);
         isWhiteTurn = !isWhiteTurn;
     }
 
@@ -60,16 +60,16 @@ public class Game {
         int xPos = x / SIZE;
         int yPos = y / SIZE;
         for (BoardPiece piece: pieces) {
-            if (piece.xPos == xPos && piece.yPos == yPos) {
+            if (piece.getXPos() == xPos && piece.getYPos() == yPos) {
                 return piece;
             }
         }
         return null;
     }
 
-    public BoardPiece getPieceVec2D(Vector2d vec) {;
+    public BoardPiece getPieceVec2D(Vector2d vector2d) {;
         for (BoardPiece piece: pieces) {
-            if (piece.xPos == vec.x && piece.yPos == vec.y) {
+            if (piece.getXPos() == vector2d.x && piece.getYPos() == vector2d.y) {
                 return piece;
             }
         }
@@ -128,5 +128,13 @@ public class Game {
             }
         }
         return chess_pieces;
+    }
+
+    public ArrayList<BoardPiece> getPieces() {
+        return pieces;
+    }
+
+    public Image[] getChessPieceImgs() {
+        return chessPieceImgs;
     }
 }

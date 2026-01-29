@@ -16,12 +16,12 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             Rook.class, 4,
             Pawn.class, 5
     );
-    public final Color LIGHT_COLOR = new Color(0xEAE9D2);
-    public final Color DARK_COLOR = new Color(0x4B7399);
-    public final int SIZE;
-    public ArrayList<BoardPiece> pieces;
-    public Image[] chess_pieces;
-    public Game game;
+    private final Color LIGHT_COLOR = new Color(0xEAE9D2);
+    private final Color DARK_COLOR = new Color(0x4B7399);
+    private final int SIZE;
+    private ArrayList<BoardPiece> pieces;
+    private Image[] chess_pieces;
+    private Game game;
 
     public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) throws IOException {
         this.SIZE = size;
@@ -44,8 +44,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         }
         for (BoardPiece piece: pieces) {
             int index = SPRITES.get(piece.getClass());
-            if (!piece.isWhite) index += 6;
-            g.drawImage(chess_pieces[index], piece.x, piece.y, this);
+            if (!piece.isWhite()) index += 6;
+            g.drawImage(chess_pieces[index], piece.getX(), piece.getY(), this);
         }
     }
 

@@ -12,9 +12,9 @@ public class Bishop extends BoardPiece {
         super(xPos, yPos, isWhite, scale);
     }
 
-    public ArrayList<Vector2d> getLegalSquares(Game board) {
-        int currentXPos = xPos;
-        int currentYPos = yPos;
+    public ArrayList<Vector2d> getLegalMoves(Game board) {
+        int currentXPos = getXPos();
+        int currentYPos = getYPos();
         ArrayList<Vector2d> moves = new ArrayList<>();
         for (Vector2d vector2d: BASE_MOVEMENT) {
             for (int i = 1; i < 8; i++) {
@@ -22,9 +22,28 @@ public class Bishop extends BoardPiece {
                 if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) break;
                 BoardPiece piece = board.getPieceVec2D(testVector);
                 if (piece != null) {
-                    if (piece.isWhite != isWhite) moves.add(testVector);
+                    if (piece.isWhite() != isWhite()) moves.add(testVector);
                     break;
                 } else moves.add(testVector);
+            }
+        }
+        return moves;
+    }
+
+    public ArrayList<Vector2d> getAttackSquares(Game board) {
+        int currentXPos = getXPos();
+        int currentYPos = getYPos();
+        ArrayList<Vector2d> moves = new ArrayList<>();
+        for (Vector2d vector2d: BASE_MOVEMENT) {
+            for (int i = 1; i < 8; i++) {
+                Vector2d testVector = new Vector2d(currentXPos + vector2d.x * i, currentYPos + vector2d.y * i);
+                if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) break;
+                BoardPiece piece = board.getPieceVec2D(testVector);
+                moves.add(testVector);
+                if (piece != null) {
+                    if (piece instanceof King && piece.isWhite() != isWhite()) moves.add(new Vector2d(testVector.x + vector2d.x, testVector.y + vector2d.y));
+                    break;
+                }
             }
         }
         return moves;
