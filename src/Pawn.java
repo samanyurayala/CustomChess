@@ -13,6 +13,8 @@ public class Pawn extends BoardPiece {
             new Vector2d(-1, 1)  // Attack Movement Right Black
     };
 
+    private boolean enpassant;
+
     public Pawn(int xPos, int yPos, boolean isWhite, int scale) {
         super(xPos, yPos, isWhite, scale);
     }
@@ -40,6 +42,7 @@ public class Pawn extends BoardPiece {
                 if (piece != null && piece.isWhite() != isWhite()) moves.add(testVector);
             }
         }
+        moves = enpassant(moves, board);
         BoardPiece king = board.getPiece(King.class, isWhite()).getFirst();
         if (king.isInCheck(board)) {
             ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
@@ -61,5 +64,24 @@ public class Pawn extends BoardPiece {
             moves.add(testVector);
         }
         return moves;
+    }
+
+    public ArrayList<Vector2d> enpassant(ArrayList<Vector2d> moves, Game board) {
+        int test = isWhite() ? 3 : 4;
+        int newY = isWhite() ? -1 : 1;
+        if (getYPos() != test) return moves;
+        BoardPiece testPawn1 = board.getPieceXPosYPos(getXPos() + 1, getYPos());
+        BoardPiece testPawn2 = board.getPieceXPosYPos(getXPos() - 1, getYPos());
+        if (testPawn1 instanceof Pawn && testPawn1.isEnpassant()) moves.add(new Vector2d(getXPos() + 1, getYPos() + newY));
+        if (testPawn2 instanceof Pawn && testPawn2.isEnpassant()) moves.add(new Vector2d(getXPos() - 1, getYPos() + newY));
+        return moves;
+    }
+
+    public boolean isEnpassant() {
+        return enpassant;
+    }
+
+    public void setEnpassant(boolean enpassant) {
+        this.enpassant = enpassant;
     }
 }

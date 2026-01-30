@@ -41,22 +41,34 @@ public class Game {
 
     public void move(int xPos, int yPos, BoardPiece piece) {
         int oldXPos = piece.getXPos();
+        boolean isPieceOnSquare = false;
         BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
         if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite())) {
             piece.setX(piece.getXPos() * SIZE);
             piece.setY(piece.getYPos() * SIZE);
-            System.out.println(isWhiteTurn);
+            System.out.println(piece.isEnpassant());
             return;
         }
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
             kill(piece2);
+            isPieceOnSquare = true;
         }
         piece.setXPos(xPos);
         piece.setYPos(yPos);
         piece.setX(xPos * SIZE);
         piece.setY(yPos * SIZE);
+        ArrayList<BoardPiece> pawns = getPiece(Pawn.class, !piece.isWhite());
+        for (BoardPiece pawn : pawns) {
+            if (pawn.isEnpassant()) pawn.setEnpassant(false);
+        }
+        if (piece instanceof Pawn) {
+            if (!piece.hasMoved()) {
+                if (((piece.isWhite() && piece.getYPos() == 4) || (!piece.isWhite() && piece.getYPos() == 3)) && !piece.isEnpassant()) piece.setEnpassant(true);
+            } else if (piece.hasMoved() && piece.isEnpassant()) piece.setEnpassant(false);
+        }
+        System.out.println(piece.isEnpassant());
         if (!piece.hasMoved()) piece.setHasMoved(true);
         if (piece instanceof King) {
             if (xPos - oldXPos == 2) { /* kingside castling distance */
@@ -69,8 +81,11 @@ public class Game {
                 rook.setX(3 * SIZE);
             }
         }
+        if (piece instanceof Pawn) {
+            int newY = piece.isWhite() ? 1 : -1;
+            if (Math.abs(xPos - oldXPos) == 1 && !isPieceOnSquare) kill(getPieceXPosYPos(piece.getXPos(), piece.getYPos() + newY));
+        }
         isWhiteTurn = !isWhiteTurn;
-        System.out.println(isWhiteTurn);
     }
 
     public ArrayList<BoardPiece> getPiece(Class<?> test, boolean isWhite) {

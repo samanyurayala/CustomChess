@@ -5,6 +5,7 @@ public class BoardPiece {
     private boolean isWhite;
     private int x, y;
     private boolean hasMoved;
+    private boolean enpassant;
 
     public BoardPiece(int xPos, int yPos, boolean isWhite, int size) {
         this.xPos = xPos;
@@ -13,6 +14,7 @@ public class BoardPiece {
         y = yPos * size;
         this.isWhite = isWhite;
         hasMoved = false;
+        enpassant = false;
     }
 
     public ArrayList<Vector2d> getAttackSquares(Game board) {
@@ -77,5 +79,13 @@ public class BoardPiece {
 
     public void setYPos(int yPos) {
         this.yPos = yPos;
+    }
+
+    public boolean isEnpassant() {
+        return enpassant;
+    }
+
+    public void setEnpassant(boolean enpassant) {
+        this.enpassant = enpassant;
     }
 }
