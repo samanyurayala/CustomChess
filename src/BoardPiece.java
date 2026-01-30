@@ -31,6 +31,10 @@ public class BoardPiece {
         return new ArrayList<>();
     }
 
+    public boolean[] canCastle(Game board) {
+        return new boolean[]{false, false};
+    }
+
     public boolean isWhite() {
         return isWhite;
     }

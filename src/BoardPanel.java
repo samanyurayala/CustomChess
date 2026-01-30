@@ -35,8 +35,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
+        for (int row = 0; row < Game.BOARD_SIZE; row++) {
+            for (int col = 0; col < Game.BOARD_SIZE; col++) {
                 boolean light = (row + col) % 2 == 0;
                 g.setColor(light ? LIGHT_COLOR : DARK_COLOR);
                 g.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);

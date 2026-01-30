@@ -21,9 +21,9 @@ public class Queen extends BoardPiece {
         int currentYPos = getYPos();
         ArrayList<Vector2d> moves = new ArrayList<>();
         for (Vector2d vector2d: BASE_MOVEMENT) {
-            for (int i = 1; i < 8; i++) {
+            for (int i = 1; i < Game.BOARD_SIZE; i++) {
                 Vector2d testVector = new Vector2d(currentXPos + vector2d.x * i, currentYPos + vector2d.y * i);
-                if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) break;
+                if (testVector.x < Game.LEFT_FILE || testVector.x > Game.RIGHT_FILE || testVector.y < Game.TOP_RANK || testVector.y > Game.BOTTOM_RANK) break;
                 BoardPiece piece = board.getPieceVec2D(testVector);
                 if (piece != null) {
                     if (piece.isWhite() != isWhite()) moves.add(testVector);
@@ -31,7 +31,7 @@ public class Queen extends BoardPiece {
                 } else moves.add(testVector);
             }
         }
-        BoardPiece king = board.getPiece(King.class, isWhite());
+        BoardPiece king = board.getPiece(King.class, isWhite()).getFirst();
         if (king.isInCheck(board)) {
             ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
             moves.retainAll(squares);
@@ -44,9 +44,9 @@ public class Queen extends BoardPiece {
         int currentYPos = getYPos();
         ArrayList<Vector2d> moves = new ArrayList<>();
         for (Vector2d vector2d: BASE_MOVEMENT) {
-            for (int i = 1; i < 8; i++) {
+            for (int i = 1; i < Game.BOARD_SIZE; i++) {
                 Vector2d testVector = new Vector2d(currentXPos + vector2d.x * i, currentYPos + vector2d.y * i);
-                if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) break;
+                if (testVector.x < Game.LEFT_FILE || testVector.x > Game.RIGHT_FILE || testVector.y < Game.TOP_RANK || testVector.y > Game.BOTTOM_RANK) break;
                 BoardPiece piece = board.getPieceVec2D(testVector);
                 moves.add(testVector);
                 if (piece != null) {

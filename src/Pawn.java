@@ -26,7 +26,7 @@ public class Pawn extends BoardPiece {
         else System.arraycopy(BASE_BLACK_MOVEMENT, 0, colorMoves, 0, 3);
         for (Vector2d vector2d: colorMoves) {
             Vector2d testVector = new Vector2d(currentXPos + vector2d.x, currentYPos + vector2d.y);
-            if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7) continue;
+            if (testVector.x < Game.LEFT_FILE || testVector.x > Game.RIGHT_FILE || testVector.y < Game.TOP_RANK || testVector.y > Game.BOTTOM_RANK) continue;
             BoardPiece piece = board.getPieceVec2D(testVector);
             if (vector2d.x == 0) {
                 if (piece == null) {
@@ -40,7 +40,7 @@ public class Pawn extends BoardPiece {
                 if (piece != null && piece.isWhite() != isWhite()) moves.add(testVector);
             }
         }
-        BoardPiece king = board.getPiece(King.class, isWhite());
+        BoardPiece king = board.getPiece(King.class, isWhite()).getFirst();
         if (king.isInCheck(board)) {
             ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
             moves.retainAll(squares);
@@ -57,7 +57,7 @@ public class Pawn extends BoardPiece {
         else System.arraycopy(BASE_BLACK_MOVEMENT, 0, colorMoves, 0, 3);
         for (Vector2d vector2d: colorMoves) {
             Vector2d testVector = new Vector2d(currentXPos + vector2d.x, currentYPos + vector2d.y);
-            if (testVector.x < 0 || testVector.x > 7 || testVector.y < 0 || testVector.y > 7 || vector2d.x == 0) continue;
+            if (testVector.x < Game.LEFT_FILE || testVector.x > Game.RIGHT_FILE || testVector.y < Game.TOP_RANK || testVector.y > Game.BOTTOM_RANK || vector2d.x == 0) continue;
             moves.add(testVector);
         }
         return moves;

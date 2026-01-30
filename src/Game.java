@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Game {
@@ -12,6 +11,9 @@ public class Game {
     private boolean isWhiteTurn;
     private Image[] chessPieceImgs;
     private final int SIZE;
+    public static final int BOARD_SIZE = 8;
+    public static final int LEFT_FILE = 0, TOP_RANK = 0;
+    public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
 
 
     public Game(int size) throws IOException {
@@ -38,14 +40,14 @@ public class Game {
     }
 
     public void move(int xPos, int yPos, BoardPiece piece) {
-        System.out.println(Arrays.deepToString(piece.getSquaresBetweenCheckingPiece(this).toArray()));
+        int oldXPos = piece.getXPos();
         BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
-        System.out.println(piece.isInCheck(this));
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
         if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite())) {
             piece.setX(piece.getXPos() * SIZE);
             piece.setY(piece.getYPos() * SIZE);
+            System.out.println(isWhiteTurn);
             return;
         }
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
@@ -56,14 +58,27 @@ public class Game {
         piece.setX(xPos * SIZE);
         piece.setY(yPos * SIZE);
         if (!piece.hasMoved()) piece.setHasMoved(true);
+        if (piece instanceof King) {
+            if (xPos - oldXPos == 2) { /* kingside castling distance */
+                BoardPiece rook = getPieceXPosYPos(7, piece.getYPos()); /* kingside rook */
+                rook.setXPos(5);
+                rook.setX(5 * SIZE);
+            } else if (xPos - oldXPos == -2 ) { /* queenside castling distance */
+                BoardPiece rook = getPieceXPosYPos(0, piece.getYPos()); /* queenside rook */
+                rook.setXPos(3);
+                rook.setX(3 * SIZE);
+            }
+        }
         isWhiteTurn = !isWhiteTurn;
+        System.out.println(isWhiteTurn);
     }
 
-    public BoardPiece getPiece(Class<?> test, boolean isWhite) {
-        for (BoardPiece piece : pieces) {
-            if (test.isInstance(piece) && piece.isWhite() == isWhite) return piece;
+    public ArrayList<BoardPiece> getPiece(Class<?> test, boolean isWhite) {
+        ArrayList<BoardPiece> newPieces = new ArrayList<>();
+        for (BoardPiece piece: pieces) {
+            if (test.isInstance(piece) && piece.isWhite() == isWhite) newPieces.add(piece);
         }
-        return null;
+        return newPieces;
     }
 
     public BoardPiece getPieceXY(int x, int y) {
