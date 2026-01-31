@@ -48,6 +48,9 @@ public class Pawn extends BoardPiece {
             ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
             moves.retainAll(squares);
         }
+        if (getPinningPiece(board) != null) {
+            moves.retainAll(getSquaresBetweenPinningPiece(board));
+        }
         return moves;
     }
 

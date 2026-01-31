@@ -87,7 +87,7 @@ public class King extends BoardPiece {
     }
 
     public boolean[] canCastle(Game board) {
-        if (hasMoved()) return new boolean[]{false, false};
+        if (hasMoved() || isInCheck(board)) return new boolean[]{false, false};
         boolean[] castle = new boolean[2];
         ArrayList<BoardPiece> rooks = board.getPiece(Rook.class, isWhite());
         BoardPiece rook1 = null;

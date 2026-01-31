@@ -37,6 +37,29 @@ public class BoardPiece {
         return new boolean[]{false, false};
     }
 
+    public ArrayList<Vector2d> pieceIsPinningSquares(Game board) {
+        return new ArrayList<>();
+    }
+
+    public BoardPiece getPinningPiece(Game board) {
+        for (BoardPiece piece: board.getPieces()) {
+            if (piece.isWhite() != isWhite() && piece.pieceIsPinningSquares(board).contains(new Vector2d(getXPos(), getYPos()))) return piece;
+        }
+        return null;
+    }
+
+    public ArrayList<Vector2d> getSquaresBetweenPinningPiece(Game board) {
+        ArrayList<Vector2d> squares = new ArrayList<>();
+        BoardPiece pinningPiece = getPinningPiece(board);
+        int adderX = Integer.compare(getXPos() - pinningPiece.getXPos(), 0);
+        int adderY = Integer.compare(getYPos() - pinningPiece.getYPos(), 0);
+        for (int i = 1; i < Math.max(Math.abs(getXPos() - pinningPiece.getXPos()), Math.abs(getYPos() - pinningPiece.getYPos())); i++) {
+            squares.add(new Vector2d(getXPos() - adderX * i, getYPos() - adderY * i));
+        }
+        squares.add(new Vector2d(pinningPiece.getXPos(), pinningPiece.getYPos()));
+        return squares;
+    }
+
     public boolean isWhite() {
         return isWhite;
     }

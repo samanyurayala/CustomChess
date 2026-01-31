@@ -88,6 +88,14 @@ public class Game {
         isWhiteTurn = !isWhiteTurn;
     }
 
+    public ArrayList<Vector2d> getAllLegalMoves(boolean isWhite) {
+        ArrayList<Vector2d> moves = new ArrayList<>();
+        for (BoardPiece piece : pieces) {
+            if (piece.isWhite() != isWhite) moves.addAll(piece.getLegalMoves(this));
+        }
+        return moves;
+    }
+
     public ArrayList<BoardPiece> getPiece(Class<?> test, boolean isWhite) {
         ArrayList<BoardPiece> newPieces = new ArrayList<>();
         for (BoardPiece piece: pieces) {
