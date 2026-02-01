@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        drawGame(80);
+        drawGame(90);
     }
 
     public static void drawGame(int size) throws IOException {

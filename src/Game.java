@@ -48,7 +48,6 @@ public class Game {
         if (!legalSquares.contains(testVector) || !(isWhiteTurn == piece.isWhite())) {
             piece.setX(piece.getXPos() * SIZE);
             piece.setY(piece.getYPos() * SIZE);
-            System.out.println(piece.isEnpassant());
             return;
         }
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
@@ -68,7 +67,6 @@ public class Game {
                 if (((piece.isWhite() && piece.getYPos() == 4) || (!piece.isWhite() && piece.getYPos() == 3)) && !piece.isEnpassant()) piece.setEnpassant(true);
             } else if (piece.hasMoved() && piece.isEnpassant()) piece.setEnpassant(false);
         }
-        System.out.println(piece.isEnpassant());
         if (!piece.hasMoved()) piece.setHasMoved(true);
         if (piece instanceof King) {
             if (xPos - oldXPos == 2) { /* kingside castling distance */
@@ -86,12 +84,16 @@ public class Game {
             if (Math.abs(xPos - oldXPos) == 1 && !isPieceOnSquare) kill(getPieceXPosYPos(piece.getXPos(), piece.getYPos() + newY));
         }
         isWhiteTurn = !isWhiteTurn;
+        if (getAllLegalMoves(isWhiteTurn).isEmpty()) {
+            if (getPiece(King.class, isWhiteTurn).getFirst().isInCheck(this)) System.out.println("Checkmate");
+            else System.out.println("Stalemate");
+        }
     }
 
     public ArrayList<Vector2d> getAllLegalMoves(boolean isWhite) {
         ArrayList<Vector2d> moves = new ArrayList<>();
         for (BoardPiece piece : pieces) {
-            if (piece.isWhite() != isWhite) moves.addAll(piece.getLegalMoves(this));
+            if (piece.isWhite() == isWhite) moves.addAll(piece.getLegalMoves(this));
         }
         return moves;
     }
@@ -178,9 +180,9 @@ public class Game {
         BufferedImage chessPieces = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream("/chess_pieces.png")));
         Image[] chess_pieces = new Image[12];
         int index = 0;
-        for (int y = 0; y < 400; y += 200) {
-            for (int x = 0; x < 1200; x += 200) {
-                chess_pieces[index] = chessPieces.getSubimage(x, y, 200, 200).getScaledInstance(size, size, BufferedImage.SCALE_SMOOTH);
+        for (int y = 0; y < 600; y += 300) {
+            for (int x = 0; x < 1800; x += 300) {
+                chess_pieces[index] = chessPieces.getSubimage(x, y, 300, 300).getScaledInstance(size, size, BufferedImage.SCALE_SMOOTH);
                 index++;
             }
         }

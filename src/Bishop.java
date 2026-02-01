@@ -66,11 +66,19 @@ public class Bishop extends BoardPiece {
                 Vector2d testVector = new Vector2d(currentXPos + vector2d.x * i, currentYPos + vector2d.y * i);
                 if (testVector.x < Game.LEFT_FILE || testVector.x > Game.RIGHT_FILE || testVector.y < Game.TOP_RANK || testVector.y > Game.BOTTOM_RANK) break;
                 BoardPiece piece = board.getPieceVec2D(testVector);
-                if (piece != null) {
-                    Vector2d testVector1 = new Vector2d(currentXPos + vector2d.x * (i + 1), currentYPos + vector2d.y * (i + 1));
-                    if (piece.isWhite() != isWhite() && board.getPieceVec2D(testVector1) instanceof King) squares.add(testVector);
-                    else break;
+                boolean isEmpty = false;
+                if (piece != null && piece.isWhite() != isWhite()) {
+                    for (int j = 1; j < Game.BOARD_SIZE - i + 1; j++) {
+                        Vector2d testVector1 = new Vector2d(currentXPos + vector2d.x * (i + j), currentYPos + vector2d.y * (i + j));
+                        BoardPiece testPiece = board.getPieceVec2D(testVector1);
+                        if (testPiece != null) {
+                            if (testPiece instanceof King && testPiece.isWhite() != isWhite()) isEmpty = true;
+                            break;
+                        }
+                    }
+                    if (isEmpty) squares.add(testVector);
                 }
+                if (piece != null && piece.isWhite() == isWhite()) break;
             }
         }
         return squares;
