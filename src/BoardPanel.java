@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener {
-    private final Map<Class<?>, Integer> SPRITES = Map.of(
+    private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
             King.class, 0,
             Queen.class, 1,
             Bishop.class, 2,

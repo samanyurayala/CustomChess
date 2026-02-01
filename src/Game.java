@@ -1,28 +1,39 @@
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 
 public class Game {
     private BoardPiece selectedPiece = null;
     private ArrayList<BoardPiece> pieces;
     private boolean isWhiteTurn;
-    private Image[] chessPieceImgs;
+    private final Image[] CHESS_PIECE_IMGS;
     private final int SIZE;
-    private final Sound sound;
+    private final Sound SOUND;
+    private final Icon[] PROMOTION;
+    private final Map<Integer, Class<? extends BoardPiece>> PROMOTION_MAP = Map.of(
+            3, Queen.class,
+            2, Rook.class,
+            1, Bishop.class,
+            0, Knight.class
+    );
     public static final int BOARD_SIZE = 8;
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
 
-
     public Game(int size) throws IOException {
-        chessPieceImgs = readChessPieces(size);
+        CHESS_PIECE_IMGS = readChessPieces(size);
         pieces = initChessPieces(size);
         isWhiteTurn = true;
         this.SIZE = size;
-        sound = new Sound();
+        SOUND = new Sound();
+        PROMOTION = new Icon[]{new ImageIcon(CHESS_PIECE_IMGS[3]), new ImageIcon(CHESS_PIECE_IMGS[2]), new ImageIcon(CHESS_PIECE_IMGS[4]), new ImageIcon(CHESS_PIECE_IMGS[1]), new ImageIcon(CHESS_PIECE_IMGS[9]), new ImageIcon(CHESS_PIECE_IMGS[8]), new ImageIcon(CHESS_PIECE_IMGS[10]), new ImageIcon(CHESS_PIECE_IMGS[7])};
     }
 
     public void movePiece(int x, int y) {
@@ -43,9 +54,13 @@ public class Game {
 
     public void move(int xPos, int yPos, BoardPiece piece) {
         int oldXPos = piece.getXPos();
+        int oldYPos = piece.getYPos();
         boolean isPieceOnSquare = false;
         boolean playMove = false;
         boolean playCapture = false;
+        boolean playCastle = false;
+        boolean playPromote = false;
+        boolean capturesPiece = false;
         BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
@@ -55,7 +70,7 @@ public class Game {
             return;
         }
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
-            kill(piece2);
+            capturesPiece = true;
             isPieceOnSquare = true;
             playCapture = true;
         } else {
@@ -80,13 +95,13 @@ public class Game {
                 BoardPiece rook = getPieceXPosYPos(7, piece.getYPos()); /* kingside rook */
                 rook.setXPos(5);
                 rook.setX(5 * SIZE);
-                sound.playCastle();
+                playCastle = true;
                 playMove = false;
             } else if (xPos - oldXPos == -2 ) { /* queenside castling distance */
                 BoardPiece rook = getPieceXPosYPos(0, piece.getYPos()); /* queenside rook */
                 rook.setXPos(3);
                 rook.setX(3 * SIZE);
-                sound.playCastle();
+                playCastle = true;
                 playMove = false;
             }
         }
@@ -97,21 +112,42 @@ public class Game {
                 playCapture = true;
             }
         }
+        if (piece instanceof Pawn) {
+            if ((piece.isWhite() && piece.getYPos() == 0) || (!piece.isWhite() && piece.getYPos() == 7)) {
+                Icon[] PROMOTIONS = piece.isWhite() ? Arrays.copyOfRange(PROMOTION, 0, 4) : Arrays.copyOfRange(PROMOTION, 4, PROMOTION.length);
+                int choice = JOptionPane.showOptionDialog(null, null, "Promote", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, new ImageIcon(), PROMOTIONS, null);
+                if (choice == -1) {
+                    piece.setXPos(oldXPos);
+                    piece.setYPos(oldYPos);
+                    piece.setX(oldXPos * SIZE);
+                    piece.setY(oldYPos * SIZE);
+                    return;
+                }
+                promote(choice, piece);
+                playPromote = true;
+                playCapture = false;
+            }
+        }
+        if (capturesPiece) kill(piece2);
         isWhiteTurn = !isWhiteTurn;
         boolean kingInCheck = getPiece(King.class, isWhiteTurn).getFirst().isInCheck(this);
         if (kingInCheck) {
-            sound.playCheck();
+            SOUND.playCheck();
             playMove = false;
             playCapture = false;
+            playCastle = false;
+            playPromote = false;
         }
         if (getAllLegalMoves(isWhiteTurn).isEmpty()) {
             if (kingInCheck) {
-                sound.playEnd();
+                SOUND.playEnd();
             }
-            else sound.playEnd();
+            else SOUND.playEnd();
         }
-        if (playCapture) sound.playCapture();
-        if (playMove) sound.playMove();
+        if (playCapture) SOUND.playCapture();
+        if (playMove) SOUND.playMove();
+        if (playCastle) SOUND.playCastle();
+        if (playPromote) SOUND.playPromote();
     }
 
     public ArrayList<Vector2d> getAllLegalMoves(boolean isWhite) {
@@ -122,7 +158,20 @@ public class Game {
         return moves;
     }
 
-    public ArrayList<BoardPiece> getPiece(Class<?> test, boolean isWhite) {
+    public void promote(int option, BoardPiece piece) {
+        Class<? extends BoardPiece> newPieceType = PROMOTION_MAP.get(option);
+        try {
+            BoardPiece newPiece = newPieceType.getConstructor(int.class, int.class, boolean.class, int.class).newInstance(piece.getXPos(), piece.getYPos(), piece.isWhite(), SIZE);
+            kill(piece);
+            newPiece.setHasMoved(true);
+            pieces.add(newPiece);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArrayList<BoardPiece> getPiece(Class<? extends BoardPiece> test, boolean isWhite) {
         ArrayList<BoardPiece> newPieces = new ArrayList<>();
         for (BoardPiece piece: pieces) {
             if (test.isInstance(piece) && piece.isWhite() == isWhite) newPieces.add(piece);
@@ -218,6 +267,6 @@ public class Game {
     }
 
     public Image[] getChessPieceImgs() {
-        return chessPieceImgs;
+        return CHESS_PIECE_IMGS;
     }
 }
