@@ -11,6 +11,7 @@ public class Game {
     private boolean isWhiteTurn;
     private Image[] chessPieceImgs;
     private final int SIZE;
+    private final Sound sound;
     public static final int BOARD_SIZE = 8;
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
@@ -21,6 +22,7 @@ public class Game {
         pieces = initChessPieces(size);
         isWhiteTurn = true;
         this.SIZE = size;
+        sound = new Sound();
     }
 
     public void movePiece(int x, int y) {
@@ -42,6 +44,8 @@ public class Game {
     public void move(int xPos, int yPos, BoardPiece piece) {
         int oldXPos = piece.getXPos();
         boolean isPieceOnSquare = false;
+        boolean playMove = false;
+        boolean playCapture = false;
         BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
@@ -53,6 +57,9 @@ public class Game {
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
             kill(piece2);
             isPieceOnSquare = true;
+            playCapture = true;
+        } else {
+            playMove = true;
         }
         piece.setXPos(xPos);
         piece.setYPos(yPos);
@@ -73,21 +80,38 @@ public class Game {
                 BoardPiece rook = getPieceXPosYPos(7, piece.getYPos()); /* kingside rook */
                 rook.setXPos(5);
                 rook.setX(5 * SIZE);
+                sound.playCastle();
+                playMove = false;
             } else if (xPos - oldXPos == -2 ) { /* queenside castling distance */
                 BoardPiece rook = getPieceXPosYPos(0, piece.getYPos()); /* queenside rook */
                 rook.setXPos(3);
                 rook.setX(3 * SIZE);
+                sound.playCastle();
+                playMove = false;
             }
         }
         if (piece instanceof Pawn) {
             int newY = piece.isWhite() ? 1 : -1;
-            if (Math.abs(xPos - oldXPos) == 1 && !isPieceOnSquare) kill(getPieceXPosYPos(piece.getXPos(), piece.getYPos() + newY));
+            if (Math.abs(xPos - oldXPos) == 1 && !isPieceOnSquare) {
+                kill(getPieceXPosYPos(piece.getXPos(), piece.getYPos() + newY));
+                playCapture = true;
+            }
         }
         isWhiteTurn = !isWhiteTurn;
-        if (getAllLegalMoves(isWhiteTurn).isEmpty()) {
-            if (getPiece(King.class, isWhiteTurn).getFirst().isInCheck(this)) System.out.println("Checkmate");
-            else System.out.println("Stalemate");
+        boolean kingInCheck = getPiece(King.class, isWhiteTurn).getFirst().isInCheck(this);
+        if (kingInCheck) {
+            sound.playCheck();
+            playMove = false;
+            playCapture = false;
         }
+        if (getAllLegalMoves(isWhiteTurn).isEmpty()) {
+            if (kingInCheck) {
+                sound.playEnd();
+            }
+            else sound.playEnd();
+        }
+        if (playCapture) sound.playCapture();
+        if (playMove) sound.playMove();
     }
 
     public ArrayList<Vector2d> getAllLegalMoves(boolean isWhite) {
@@ -177,7 +201,7 @@ public class Game {
     }
 
     public Image[] readChessPieces(int size) throws IOException {
-        BufferedImage chessPieces = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream("/chess_pieces.png")));
+        BufferedImage chessPieces = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream("/images/chess_pieces.png")));
         Image[] chess_pieces = new Image[12];
         int index = 0;
         for (int y = 0; y < 600; y += 300) {
