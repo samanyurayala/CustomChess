@@ -77,6 +77,7 @@ public class Rook extends BoardPiece {
                         }
                     }
                     if (isEmpty) squares.add(testVector);
+                    break;
                 }
                 if (piece != null && piece.isWhite() == isWhite()) break;
             }

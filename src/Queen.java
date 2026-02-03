@@ -82,6 +82,7 @@ public class Queen extends BoardPiece {
                         }
                     }
                     if (isEmpty) squares.add(testVector);
+                    break;
                 }
                 if (piece != null && piece.isWhite() == isWhite()) break;
             }
