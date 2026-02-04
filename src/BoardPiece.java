@@ -53,8 +53,9 @@ public class BoardPiece {
         BoardPiece pinningPiece = getPinningPiece(board);
         int adderX = Integer.compare(getXPos() - pinningPiece.getXPos(), 0);
         int adderY = Integer.compare(getYPos() - pinningPiece.getYPos(), 0);
-        for (int i = 1; i < Math.max(Math.abs(getXPos() - pinningPiece.getXPos()), Math.abs(getYPos() - pinningPiece.getYPos())); i++) {
-            squares.add(new Vector2d(getXPos() - adderX * i, getYPos() - adderY * i));
+        for (int i = 1; i < Game.BOARD_SIZE; i++) {
+            Vector2d testVector = new Vector2d(pinningPiece.getXPos() + adderX * i, pinningPiece.getYPos() + adderY * i);
+            if (testVector.x > Game.LEFT_FILE && testVector.x < Game.RIGHT_FILE && testVector.y > Game.TOP_RANK && testVector.y < Game.BOTTOM_RANK) squares.add(testVector);
         }
         squares.add(new Vector2d(pinningPiece.getXPos(), pinningPiece.getYPos()));
         return squares;
