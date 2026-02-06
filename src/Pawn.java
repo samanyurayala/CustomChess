@@ -6,14 +6,14 @@ public class Pawn extends BoardPiece {
             new Vector2d(-1, -1), // Attack Movement Left White
             new Vector2d(1, -1), // Attack Movement Right White
     };
-
     private final Vector2d[] BASE_BLACK_MOVEMENT = {
             new Vector2d(0, 1), // Normal Movement Black
             new Vector2d(1, 1), // Attack Movement Left Black
             new Vector2d(-1, 1)  // Attack Movement Right Black
     };
-
     private boolean enpassant;
+
+    private ArrayList<Vector2d> enPassantSquares = new ArrayList<>();
 
     public Pawn(int xPos, int yPos, boolean isWhite, int scale) {
         super(xPos, yPos, isWhite, scale);
@@ -77,7 +77,12 @@ public class Pawn extends BoardPiece {
         BoardPiece testPawn2 = board.getPieceXPosYPos(getXPos() - 1, getYPos());
         if (testPawn1 instanceof Pawn && testPawn1.isEnpassant()) moves.add(new Vector2d(getXPos() + 1, getYPos() + newY));
         if (testPawn2 instanceof Pawn && testPawn2.isEnpassant()) moves.add(new Vector2d(getXPos() - 1, getYPos() + newY));
+        moves.addAll(enPassantSquares);
         return moves;
+    }
+
+    public void setEnPassantSquares(ArrayList<Vector2d> enPassantSquares) {
+        this.enPassantSquares = enPassantSquares;
     }
 
     public boolean isEnpassant() {

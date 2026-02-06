@@ -4,10 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Game {
     private BoardPiece selectedPiece = null;
@@ -23,15 +20,34 @@ public class Game {
             1, Bishop.class,
             0, Knight.class
     );
+    final Map<Character, Class<? extends BoardPiece>> CHAR_MAP = Map.of(
+            'q', Queen.class,
+            'r', Rook.class,
+            'b', Bishop.class,
+            'n', Knight.class,
+            'p', Pawn.class,
+            'k', King.class
+    );
+    private final Map<Character, Integer> SQUARE_MAP = Map.of(
+            'a', 0,
+            'b', 1,
+            'c', 2,
+            'd', 3,
+            'e', 4,
+            'f', 5,
+            'g', 6,
+            'h', 7
+    );
+    public final boolean[] whiteCastle = {true, true};
+    public final boolean[] blackCastle = {true, true};
     public static final int BOARD_SIZE = 8;
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
 
-    public Game(int size) throws IOException {
-        CHESS_PIECE_IMGS = readChessPieces(size);
-        pieces = initChessPieces(size);
-        isWhiteTurn = true;
+    public Game(int size, String fen) {
         this.SIZE = size;
+        CHESS_PIECE_IMGS = readChessPieces(size);
+        pieces = readFEN(fen);
         SOUND = new Sound();
         PROMOTION = new Icon[]{new ImageIcon(CHESS_PIECE_IMGS[3]), new ImageIcon(CHESS_PIECE_IMGS[2]), new ImageIcon(CHESS_PIECE_IMGS[4]), new ImageIcon(CHESS_PIECE_IMGS[1]), new ImageIcon(CHESS_PIECE_IMGS[9]), new ImageIcon(CHESS_PIECE_IMGS[8]), new ImageIcon(CHESS_PIECE_IMGS[10]), new ImageIcon(CHESS_PIECE_IMGS[7])};
     }
@@ -199,6 +215,15 @@ public class Game {
         return null;
     }
 
+    public BoardPiece getPieceArrayList(int xPos, int yPos, ArrayList<BoardPiece> pieces) {
+        for (BoardPiece piece: pieces) {
+            if (piece.getXPos() == xPos && piece.getYPos() == yPos) {
+                return piece;
+            }
+        }
+        return null;
+    }
+
     public BoardPiece getPieceVec2D(Vector2d vector2d) {;
         for (BoardPiece piece: pieces) {
             if (piece.getXPos() == vector2d.x && piece.getYPos() == vector2d.y) {
@@ -212,45 +237,65 @@ public class Game {
         pieces.remove(piece);
     }
 
-    public ArrayList<BoardPiece> initChessPieces(int size) {
+    public ArrayList<BoardPiece> readFEN(String board) {
         ArrayList<BoardPiece> pieces = new ArrayList<>();
-        pieces.add(new Rook(0, 0,false, size));
-        pieces.add(new Knight(1, 0,false, size));
-        pieces.add(new Bishop(2, 0,false, size));
-        pieces.add(new Queen(3, 0,false, size));
-        pieces.add(new King(4, 0,false, size));
-        pieces.add(new Bishop(5, 0,false, size));
-        pieces.add(new Knight(6, 0,false, size));
-        pieces.add(new Rook(7, 0,false, size));
-        pieces.add(new Pawn(0, 1,false, size));
-        pieces.add(new Pawn(1, 1,false, size));
-        pieces.add(new Pawn(2, 1,false, size));
-        pieces.add(new Pawn(3, 1,false, size));
-        pieces.add(new Pawn(4, 1,false, size));
-        pieces.add(new Pawn(5, 1,false, size));
-        pieces.add(new Pawn(6, 1,false, size));
-        pieces.add(new Pawn(7, 1,false, size));
-        pieces.add(new Rook(0, 7,true, size));
-        pieces.add(new Knight(1, 7,true, size));
-        pieces.add(new Bishop(2, 7,true, size));
-        pieces.add(new Queen(3, 7,true, size));
-        pieces.add(new King(4, 7,true, size));
-        pieces.add(new Bishop(5, 7,true, size));
-        pieces.add(new Knight(6, 7,true, size));
-        pieces.add(new Rook(7, 7,true, size));
-        pieces.add(new Pawn(0, 6,true, size));
-        pieces.add(new Pawn(1, 6,true, size));
-        pieces.add(new Pawn(2, 6,true, size));
-        pieces.add(new Pawn(3, 6,true, size));
-        pieces.add(new Pawn(4, 6,true, size));
-        pieces.add(new Pawn(5, 6,true, size));
-        pieces.add(new Pawn(6, 6,true, size));
-        pieces.add(new Pawn(7, 6,true, size));
+        final Set<Character> numbers = Set.of('1', '2', '3', '4', '5', '6', '7', '8', '9');
+        String[] read = board.split(" ");
+        int currentRank = 0;
+        int currentFile = 0;
+        for (int i = 0; i < read[0].length(); i++) {
+            char c = read[0].charAt(i);
+            if (numbers.contains(c)) currentFile += Integer.parseInt(String.valueOf(c));
+            else if (c == '/') {
+                currentRank++;
+                currentFile = 0;
+            } else {
+                boolean isWhite = Character.isUpperCase(c);
+                Class<? extends BoardPiece> newPieceType = CHAR_MAP.get(Character.toLowerCase(c));
+                try {
+                    pieces.add(newPieceType.getConstructor(int.class, int.class, boolean.class, int.class).newInstance(currentFile, currentRank, isWhite, SIZE));
+                } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                         IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+                currentFile++;
+            }
+        }
+        isWhiteTurn = read[1].charAt(0) == 'w';
+        String[] canCastle = read[2].split("");
+        if (!Arrays.asList(canCastle).contains("K")) whiteCastle[1] = false;
+        if (!Arrays.asList(canCastle).contains("Q")) whiteCastle[0] = false;
+        if (!Arrays.asList(canCastle).contains("k")) blackCastle[1] = false;
+        if (!Arrays.asList(canCastle).contains("q")) blackCastle[0] = false;
+        if (!read[3].equals("-")) {
+            String[] enPassant = read[3].split("");
+            int xPos = SQUARE_MAP.get(enPassant[0].charAt(0));
+            int yPos = 8 - Integer.parseInt(enPassant[1]);
+            int adderY = (yPos == 2) ? 1 : -1;
+            BoardPiece piece1 = getPieceArrayList(xPos + 1, yPos + adderY, pieces);
+            BoardPiece piece2 = getPieceArrayList(xPos - 1, yPos + adderY, pieces);
+            if (piece1 instanceof Pawn) {
+                ArrayList<Vector2d> enPassantSquares1 = new ArrayList<>();
+                enPassantSquares1.add(new Vector2d(xPos, yPos));
+                ((Pawn) piece1).setEnPassantSquares(enPassantSquares1);
+            }
+            if (piece2 instanceof Pawn) {
+                ArrayList<Vector2d> enPassantSquares2 = new ArrayList<>();
+                enPassantSquares2.add(new Vector2d(xPos, yPos));
+                ((Pawn) piece2).setEnPassantSquares(enPassantSquares2);
+            }
+        }
         return pieces;
     }
 
-    public Image[] readChessPieces(int size) throws IOException {
-        BufferedImage chessPieces = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream("/images/chess_pieces.png")));
+    public Image[] readChessPieces(int size) {
+        BufferedImage chessPieces;
+        try {
+            chessPieces = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream("/images/chess_pieces.png")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (chessPieces == null) return new Image[12];
         Image[] chess_pieces = new Image[12];
         int index = 0;
         for (int y = 0; y < 600; y += 300) {

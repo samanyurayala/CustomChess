@@ -99,9 +99,10 @@ public class King extends BoardPiece {
         ArrayList<BoardPiece> rooks = board.getPiece(Rook.class, isWhite());
         BoardPiece rook1 = null;
         BoardPiece rook2 = null;
+        int yValue = isWhite() ? 7 : 0;
         for (BoardPiece rook: rooks) {
-            if (rook.getXPos() == 7) rook1 = rook;
-            if (rook.getXPos() == 0) rook2 = rook;
+            if (rook.getXPos() == 7 && rook.getYPos() == yValue) rook1 = rook;
+            if (rook.getXPos() == 0 && rook.getYPos() == yValue) rook2 = rook;
         }
         ArrayList<Vector2d> squares = getSquaresControlledByEnemy(board);
         Vector2d squareKing1 = new Vector2d(getXPos() + 1, getYPos());
@@ -113,8 +114,12 @@ public class King extends BoardPiece {
         boolean squaresEmptyQueen = board.getPieceVec2D(squareQueen1) == null && board.getPieceVec2D(squareQueen2) == null && board.getPieceVec2D(squareQueen3) == null;
         boolean enemyControlSquaresEmptyKing = squares.contains(squareKing1) || squares.contains(squareKing2);
         boolean enemyControlSquaresEmptyQueen = squares.contains(squareQueen1) || squares.contains(squareQueen2);
-        if (rook1 != null && squaresEmptyKing && !enemyControlSquaresEmptyKing && !rook1.hasMoved()) castle[1] = true;
-        if (rook2 != null && squaresEmptyQueen && !enemyControlSquaresEmptyQueen && !rook2.hasMoved()) castle[0] = true;
+        if (rook1 != null && squaresEmptyKing && !enemyControlSquaresEmptyKing && !rook1.hasMoved()) {
+            if ((isWhite() && board.whiteCastle[1]) || (!isWhite() && board.blackCastle[1])) castle[1] = true;
+        }
+        if (rook2 != null && squaresEmptyQueen && !enemyControlSquaresEmptyQueen && !rook2.hasMoved()) {
+            if ((isWhite() && board.whiteCastle[0]) || (!isWhite() && board.blackCastle[0])) castle[0] = true;
+        }
         return castle;
     }
 }

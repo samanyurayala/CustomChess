@@ -1,13 +1,14 @@
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener {
+public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
     private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
             King.class, 0,
             Queen.class, 1,
@@ -23,13 +24,15 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private Image[] chess_pieces;
     private Game game;
 
-    public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) throws IOException {
+    public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) {
+        setFocusable(true);
         this.SIZE = size;
         this.pieces = pieces;
         this.chess_pieces = chess_pieces;
         this.game = chessGame;
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyListener(this);
     }
 
     @Override
@@ -84,5 +87,46 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     @Override
     public void mouseMoved(MouseEvent e) {
 
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        if (e.getKeyChar() == 'l') {
+            loadGame();
+        }
+        if (e.getKeyChar() == 'r') {
+            game = new Game(SIZE, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Starting game FEN
+            pieces = game.getPieces();
+            repaint();
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    public void loadGame() {
+        JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+        chooser.setFileFilter(new FileNameExtensionFilter(".fen, .txt", "fen", "txt"));
+        chooser.setAcceptAllFileFilterUsed(false);
+        int result = chooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            String fen;
+            try {
+                fen = Files.readString(file.toPath()).trim();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            game = new Game(SIZE, fen);
+            this.pieces = game.getPieces();
+            repaint();
+        }
     }
 }
