@@ -1,12 +1,14 @@
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
     private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
@@ -99,6 +101,9 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             pieces = game.getPieces();
             repaint();
         }
+        if (e.getKeyChar() == 'c') {
+            customGame();
+        }
     }
 
     @Override
@@ -113,6 +118,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     public void loadGame() {
         JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+        chooser.setDialogTitle("Select Game");
         chooser.setFileFilter(new FileNameExtensionFilter(".fen, .txt", "fen", "txt"));
         chooser.setAcceptAllFileFilterUsed(false);
         int result = chooser.showOpenDialog(this);
@@ -128,5 +134,78 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             this.pieces = game.getPieces();
             repaint();
         }
+    }
+
+    public void customGame() {
+        JDialog dialog = new JDialog(new Frame(), "Custom Game", true);
+        JLayeredPane pane = new JLayeredPane();
+        pane.setLayout(null);
+        pane.setPreferredSize(new Dimension(SIZE * 6, SIZE * 4));
+        dialog.setLayout(new BorderLayout());
+        EditPanel edit = new EditPanel(SIZE / 2, new ArrayList<>(), chess_pieces, game);
+        edit.setBounds(0, 0, SIZE * 7, SIZE * 4);
+        pane.add(edit, JLayeredPane.DEFAULT_LAYER);
+        JButton turn = new JButton("White to move");
+        turn.addActionListener(e -> {
+            turn.setText(edit.onTurnButtonPressed());
+        });
+        turn.setBounds(SIZE * 4, SIZE * 7 / 2, SIZE, SIZE / 2);
+        turn.setFont(new Font("Rubik", Font.ITALIC, 11));
+        JButton getFEN = new JButton("FEN");
+        getFEN.addActionListener(e -> {
+            StringSelection fen = new StringSelection(edit.getFen());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(fen, null);
+        });
+        getFEN.setBounds(SIZE * 9 / 2, SIZE * 3, SIZE / 2, SIZE / 2);
+        getFEN.setFont(new Font("Rubik", Font.PLAIN, 14));
+        JButton start = new JButton("Start");
+        start.addActionListener(e -> {
+            String fen = edit.getFen();
+            if (fen.equals("Not valid position")) return;
+            game = new Game(SIZE, fen);
+            pieces = game.getPieces();
+            repaint();
+        });
+        start.setBounds(SIZE * 4, SIZE * 3, SIZE / 2, SIZE / 2);
+        start.setFont(new Font("Rubik", Font.BOLD, 12));
+        JCheckBox whiteCastleKing = new JCheckBox("O-O (W)");
+        whiteCastleKing.setSelected(true);
+        whiteCastleKing.addActionListener(e -> {
+            edit.getWhiteCanCastle()[1] = whiteCastleKing.isSelected();
+        });
+        whiteCastleKing.setBounds(SIZE * 5, 0, SIZE, SIZE / 2);
+        whiteCastleKing.setFont(new Font("Rubik", Font.BOLD, 12));
+        JCheckBox whiteCastleQueen = new JCheckBox("O-O-O (W)");
+        whiteCastleQueen.setSelected(true);
+        whiteCastleQueen.addActionListener(e -> {
+            edit.getWhiteCanCastle()[0] = whiteCastleQueen.isSelected();
+        });
+        whiteCastleQueen.setBounds(SIZE * 5, SIZE / 2, SIZE, SIZE / 2);
+        whiteCastleQueen.setFont(new Font("Rubik", Font.BOLD, 10));
+        JCheckBox blackCastleKing = new JCheckBox("O-O (B)");
+        blackCastleKing.setSelected(true);
+        blackCastleKing.addActionListener(e -> {
+            edit.getBlackCanCastle()[1] = blackCastleKing.isSelected();
+        });
+        blackCastleKing.setBounds(SIZE * 5, SIZE, SIZE, SIZE / 2);
+        blackCastleKing.setFont(new Font("Rubik", Font.BOLD, 12));
+        JCheckBox blackCastleQueen = new JCheckBox("O-O-O (B)");
+        blackCastleQueen.setSelected(true);
+        blackCastleQueen.addActionListener(e -> {
+            edit.getBlackCanCastle()[0] = blackCastleQueen.isSelected();
+        });
+        blackCastleQueen.setBounds(SIZE * 5, SIZE * 3 / 2, SIZE, SIZE / 2);
+        blackCastleQueen.setFont(new Font("Rubik", Font.BOLD, 10));
+        pane.add(turn, JLayeredPane.PALETTE_LAYER);
+        pane.add(getFEN, JLayeredPane.PALETTE_LAYER);
+        pane.add(start, JLayeredPane.PALETTE_LAYER);
+        pane.add(whiteCastleKing, JLayeredPane.PALETTE_LAYER);
+        pane.add(whiteCastleQueen, JLayeredPane.PALETTE_LAYER);
+        pane.add(blackCastleKing, JLayeredPane.PALETTE_LAYER);
+        pane.add(blackCastleQueen, JLayeredPane.PALETTE_LAYER);
+        dialog.add(pane, BorderLayout.CENTER);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }

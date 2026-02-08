@@ -20,7 +20,7 @@ public class Game {
             1, Bishop.class,
             0, Knight.class
     );
-    final Map<Character, Class<? extends BoardPiece>> CHAR_MAP = Map.of(
+    private final Map<Character, Class<? extends BoardPiece>> CHAR_MAP = Map.of(
             'q', Queen.class,
             'r', Rook.class,
             'b', Bishop.class,
@@ -239,17 +239,16 @@ public class Game {
 
     public ArrayList<BoardPiece> readFEN(String board) {
         ArrayList<BoardPiece> pieces = new ArrayList<>();
-        final Set<Character> numbers = Set.of('1', '2', '3', '4', '5', '6', '7', '8', '9');
-        String[] read = board.split(" ");
+        String[] read = board.split("\\s+");
         int currentRank = 0;
         int currentFile = 0;
         for (int i = 0; i < read[0].length(); i++) {
             char c = read[0].charAt(i);
-            if (numbers.contains(c)) currentFile += Integer.parseInt(String.valueOf(c));
+            if (Character.isDigit(c)) currentFile += Integer.parseInt(String.valueOf(c));
             else if (c == '/') {
                 currentRank++;
                 currentFile = 0;
-            } else {
+            } else if (Character.isLetter(c)) {
                 boolean isWhite = Character.isUpperCase(c);
                 Class<? extends BoardPiece> newPieceType = CHAR_MAP.get(Character.toLowerCase(c));
                 try {
@@ -295,12 +294,13 @@ public class Game {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (chessPieces == null) return new Image[12];
-        Image[] chess_pieces = new Image[12];
+        if (chessPieces == null) return new Image[24];
+        Image[] chess_pieces = new Image[24];
         int index = 0;
         for (int y = 0; y < 600; y += 300) {
             for (int x = 0; x < 1800; x += 300) {
                 chess_pieces[index] = chessPieces.getSubimage(x, y, 300, 300).getScaledInstance(size, size, BufferedImage.SCALE_SMOOTH);
+                chess_pieces[index + 12] = chessPieces.getSubimage(x, y, 300, 300).getScaledInstance(size / 2, size / 2, BufferedImage.SCALE_SMOOTH);
                 index++;
             }
         }
