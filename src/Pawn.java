@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Pawn extends BoardPiece {
     private final Vector2d[] BASE_WHITE_MOVEMENT = {
@@ -42,7 +44,7 @@ public class Pawn extends BoardPiece {
                 if (piece != null && piece.isWhite() != isWhite()) moves.add(testVector);
             }
         }
-        moves = enpassant(moves, board);
+        moves.addAll(enpassant(board));
         BoardPiece king = board.getPiece(King.class, isWhite()).getFirst();
         if (king.isInCheck(board)) {
             ArrayList<Vector2d> squares = king.getSquaresBetweenCheckingPiece(board);
@@ -69,16 +71,17 @@ public class Pawn extends BoardPiece {
         return moves;
     }
 
-    public ArrayList<Vector2d> enpassant(ArrayList<Vector2d> moves, Game board) {
+    public ArrayList<Vector2d> enpassant(Game board) {
+        Set<Vector2d> enpassantSquares2 = new HashSet<>();
         int test = isWhite() ? 3 : 4;
         int newY = isWhite() ? -1 : 1;
-        if (getYPos() != test) return moves;
+        if (getYPos() != test) return new ArrayList<>(enpassantSquares2);
         BoardPiece testPawn1 = board.getPieceXPosYPos(getXPos() + 1, getYPos());
         BoardPiece testPawn2 = board.getPieceXPosYPos(getXPos() - 1, getYPos());
-        if (testPawn1 instanceof Pawn && testPawn1.isEnpassant()) moves.add(new Vector2d(getXPos() + 1, getYPos() + newY));
-        if (testPawn2 instanceof Pawn && testPawn2.isEnpassant()) moves.add(new Vector2d(getXPos() - 1, getYPos() + newY));
-        moves.addAll(enPassantSquares);
-        return moves;
+        if (testPawn1 instanceof Pawn && testPawn1.isEnpassant()) enpassantSquares2.add(new Vector2d(getXPos() + 1, getYPos() + newY));
+        if (testPawn2 instanceof Pawn && testPawn2.isEnpassant()) enpassantSquares2.add(new Vector2d(getXPos() - 1, getYPos() + newY));
+        enpassantSquares2.addAll(enPassantSquares);
+        return new ArrayList<>(enpassantSquares2);
     }
 
     public void setEnPassantSquares(ArrayList<Vector2d> enPassantSquares) {

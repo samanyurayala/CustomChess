@@ -2,11 +2,13 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class Game {
+    private boolean engineMoveMade = false;
     private BoardPiece selectedPiece = null;
     private ArrayList<BoardPiece> pieces;
     private boolean isWhiteTurn;
@@ -14,6 +16,8 @@ public class Game {
     private final int SIZE;
     private final Sound SOUND;
     private final Icon[] PROMOTION;
+    private int turn;
+    private int turnTill50MoveRule;
     private final Map<Integer, Class<? extends BoardPiece>> PROMOTION_MAP = Map.of(
             3, Queen.class,
             2, Rook.class,
@@ -38,11 +42,31 @@ public class Game {
             'g', 6,
             'h', 7
     );
+    private final Map<Integer, Character> SQUARE_MAP2 = Map.of(
+            0, 'a',
+            1, 'b',
+            2, 'c',
+            3, 'd',
+            4, 'e',
+            5, 'f',
+            6, 'g',
+            7, 'h'
+    );
+    private final Map<Class<? extends BoardPiece>, Character> CHAR_MAP_2 = Map.of(
+            Queen.class, 'q',
+            Rook.class, 'r',
+            Bishop.class, 'b',
+            Knight.class, 'n',
+            Pawn.class, 'p',
+            King.class, 'k'
+    );
     public final boolean[] whiteCastle = {true, true};
     public final boolean[] blackCastle = {true, true};
     public static final int BOARD_SIZE = 8;
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
+
+    Engine engine = new Engine("resources/engines/stockfish/stockfish-macos-m1-apple-silicon");
 
     public Game(int size, String fen) {
         this.SIZE = size;
@@ -68,6 +92,14 @@ public class Game {
         move(x / SIZE, y / SIZE, selectedPiece);
     }
 
+    public void makeMove(String move) {
+        String[] moveSquare = move.split("");
+        Vector2d oldSquare = new Vector2d(SQUARE_MAP.get(moveSquare[0].charAt(0)), 8 - Integer.parseInt(moveSquare[1]));
+        BoardPiece piece = getPieceXPosYPos(oldSquare.x, oldSquare.y);
+        Vector2d newSquare = new Vector2d(SQUARE_MAP.get(moveSquare[2].charAt(0)), 8 - Integer.parseInt(moveSquare[3]));
+        move(newSquare.x, newSquare.y, piece);
+    }
+
     public void move(int xPos, int yPos, BoardPiece piece) {
         int oldXPos = piece.getXPos();
         int oldYPos = piece.getYPos();
@@ -76,7 +108,8 @@ public class Game {
         boolean playCapture = false;
         boolean playCastle = false;
         boolean playPromote = false;
-        boolean capturesPiece = false;
+        boolean capturesPieceNotEnpassant = false;
+        boolean capture = false;
         BoardPiece piece2 = getPieceXPosYPos(xPos, yPos);
         ArrayList<Vector2d> legalSquares = piece.getLegalMoves(this);
         Vector2d testVector = new Vector2d(xPos, yPos);
@@ -86,9 +119,10 @@ public class Game {
             return;
         }
         if (piece2 != null && piece2.isWhite() != piece.isWhite()) {
-            capturesPiece = true;
+            capturesPieceNotEnpassant = true;
             isPieceOnSquare = true;
             playCapture = true;
+            capture = true;
         } else {
             playMove = true;
         }
@@ -126,6 +160,7 @@ public class Game {
             if (Math.abs(xPos - oldXPos) == 1 && !isPieceOnSquare) {
                 kill(getPieceXPosYPos(piece.getXPos(), piece.getYPos() + newY));
                 playCapture = true;
+                capture = true;
             }
         }
         if (piece instanceof Pawn) {
@@ -144,7 +179,11 @@ public class Game {
                 playCapture = false;
             }
         }
-        if (capturesPiece) kill(piece2);
+        if (capturesPieceNotEnpassant) kill(piece2);
+        ArrayList<BoardPiece> allPawns = getPiece(Pawn.class, piece.isWhite());
+        for (BoardPiece pawn : allPawns) {
+            ((Pawn) pawn).setEnPassantSquares(new ArrayList<>());
+        }
         isWhiteTurn = !isWhiteTurn;
         boolean kingInCheck = getPiece(King.class, isWhiteTurn).getFirst().isInCheck(this);
         if (kingInCheck) {
@@ -164,6 +203,11 @@ public class Game {
         if (playMove) SOUND.playMove();
         if (playCastle) SOUND.playCastle();
         if (playPromote) SOUND.playPromote();
+        if (!piece.isWhite()) {
+            turn++;
+            turnTill50MoveRule++;
+        }
+        if (piece instanceof Pawn || capture) turnTill50MoveRule = 0;
     }
 
     public ArrayList<Vector2d> getAllLegalMoves(boolean isWhite) {
@@ -284,7 +328,53 @@ public class Game {
                 ((Pawn) piece2).setEnPassantSquares(enPassantSquares2);
             }
         }
+        turnTill50MoveRule = Integer.parseInt(read[4]);
+        turn = Integer.parseInt(read[5]);
         return pieces;
+    }
+
+    public String readFenFromPosition(ArrayList<BoardPiece> pieces) {
+        StringBuilder fen = new StringBuilder();
+        for (int currentRank = 0; currentRank < Game.BOARD_SIZE; currentRank++) {
+            int counter = 0;
+            for (int currentFile = 0; currentFile < Game.BOARD_SIZE; currentFile++) {
+                BoardPiece piece = getPieceXPosYPos(currentFile, currentRank);
+                if (piece != null) {
+                    if (counter != 0) fen.append(counter);
+                    char pieceClass = CHAR_MAP_2.get(piece.getClass());
+                    if (piece.isWhite()) pieceClass = Character.toUpperCase(pieceClass);
+                    fen.append(pieceClass);
+                    counter = 0;
+                } else {
+                    counter++;
+                }
+            }
+            if (counter != 0) fen.append(counter);
+            fen.append("/");
+        }
+        fen.deleteCharAt(fen.length() - 1);
+        char isWhiteMove = isWhiteTurn ? 'w' : 'b';
+        fen.append(" ").append(isWhiteMove).append(" ");
+        boolean[] whiteKingCanCastle = getPiece(King.class, true).getFirst().isCastlingPossible(this);
+        boolean[] blackKingCanCastle = getPiece(King.class, false).getFirst().isCastlingPossible(this);
+        if (whiteKingCanCastle[1]) fen.append("K");
+        if (whiteKingCanCastle[0]) fen.append("Q");
+        if (blackKingCanCastle[1]) fen.append("k");
+        if (blackKingCanCastle[0]) fen.append("q");
+        if (!whiteKingCanCastle[1] && !whiteKingCanCastle[0] && !blackKingCanCastle[1] && !blackKingCanCastle[0]) fen.append("-");
+        ArrayList<BoardPiece> allPawns = getPiece(Pawn.class, isWhiteTurn);
+        ArrayList<Vector2d> enPassantSquares = new ArrayList<>();
+        for (BoardPiece piece : allPawns) {
+            enPassantSquares.addAll(((Pawn) piece).enpassant(this));
+        }
+        String square;
+        if (enPassantSquares.isEmpty()) square = "-";
+        else {
+            Vector2d squareVec2D = enPassantSquares.getFirst();
+            square = SQUARE_MAP2.get(squareVec2D.x) + String.valueOf(squareVec2D.y + 1);
+        }
+        fen.append(" ").append(square).append(" ").append(turnTill50MoveRule).append(" ").append(turn);
+        return fen.toString();
     }
 
     public Image[] readChessPieces(int size) {
@@ -311,7 +401,19 @@ public class Game {
         return pieces;
     }
 
+    public boolean isEngineMoveMade() {
+        return engineMoveMade;
+    }
+
+    public void setEngineMoveMade(boolean engineMoveMade) {
+        this.engineMoveMade = engineMoveMade;
+    }
+
     public Image[] getChessPieceImgs() {
         return CHESS_PIECE_IMGS;
+    }
+
+    public boolean isWhiteTurn() {
+        return isWhiteTurn;
     }
 }

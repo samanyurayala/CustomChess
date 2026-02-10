@@ -12,7 +12,8 @@ public class King extends BoardPiece {
             new Vector2d(-1, 1), // Diagonal Left Down
             new Vector2d(1, 1)  // Diagonal Right Down
     };
-
+    private boolean kingSideCastling = true;
+    private boolean queenSideCastling = true;
     public King(int xPos, int yPos, boolean isWhite, int scale) {
         super(xPos, yPos, isWhite, scale);
     }
@@ -121,5 +122,25 @@ public class King extends BoardPiece {
             if ((isWhite() && board.whiteCastle[0]) || (!isWhite() && board.blackCastle[0])) castle[0] = true;
         }
         return castle;
+    }
+
+    public boolean[] isCastlingPossible(Game board) {
+        boolean[] castle = {true, true};
+        ArrayList<BoardPiece> rooks = board.getPiece(Rook.class, isWhite());
+        BoardPiece rook1 = null;
+        BoardPiece rook2 = null;
+        int yValue = isWhite() ? 7 : 0;
+        for (BoardPiece rook: rooks) {
+            if (rook.getXPos() == 7 && rook.getYPos() == yValue) rook1 = rook;
+            if (rook.getXPos() == 0 && rook.getYPos() == yValue) rook2 = rook;
+        }
+        if (hasMoved() || (rook1 != null && rook1.hasMoved())) castle[1] = false;
+        if (hasMoved() || (rook2 != null && rook2.hasMoved())) castle[0] = false;
+        return castle;
+    }
+
+    public boolean[] isCastling(Game board) {
+        canCastle(board);
+        return new boolean[]{queenSideCastling, kingSideCastling};
     }
 }

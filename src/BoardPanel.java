@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
     private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
@@ -37,6 +38,30 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         addKeyListener(this);
     }
 
+    public void makeEngineMove() {
+        if (!game.isWhiteTurn()) {
+            SwingWorker<String, Void> worker = new SwingWorker<>() {
+                @Override
+                protected String doInBackground() throws Exception {
+                    return game.engine.bestMove(game.readFenFromPosition(pieces));
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        String move = get();
+                        System.out.println(move);
+                        game.makeMove(move);
+                        repaint();
+                    } catch (ExecutionException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+            worker.execute();
+        }
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -52,6 +77,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             if (!piece.isWhite()) index += 6;
             g.drawImage(chess_pieces[index], piece.getX(), piece.getY(), this);
         }
+        makeEngineMove();
     }
 
     @Override

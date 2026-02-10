@@ -112,4 +112,8 @@ public class BoardPiece {
     public void setEnpassant(boolean enpassant) {
         this.enpassant = enpassant;
     }
+
+    public boolean[] isCastlingPossible(Game board) {
+        return new boolean[]{false, false};
+    }
 }
