@@ -66,7 +66,7 @@ public class Game {
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
 
-    Engine engine = new Engine("resources/engines/stockfish/stockfish-macos-m1-apple-silicon");
+    Engine engine = new Engine("minimalChess");
 
     public Game(int size, String fen) {
         this.SIZE = size;
@@ -93,6 +93,7 @@ public class Game {
     }
 
     public void makeMove(String move) {
+        if (move.isBlank()) return;
         String[] moveSquare = move.split("");
         Vector2d oldSquare = new Vector2d(SQUARE_MAP.get(moveSquare[0].charAt(0)), 8 - Integer.parseInt(moveSquare[1]));
         BoardPiece piece = getPieceXPosYPos(oldSquare.x, oldSquare.y);

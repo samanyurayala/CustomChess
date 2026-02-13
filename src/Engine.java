@@ -6,7 +6,10 @@ public class Engine {
     BufferedWriter writer;
     BufferedReader reader;
 
-    public Engine(String path){
+    public Engine(String enginePath){
+        String path = "resources/engines/" + enginePath + "/" + enginePath;
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) path += ".exe";
         pb = new ProcessBuilder(path);
         try {
             engine = pb.start();

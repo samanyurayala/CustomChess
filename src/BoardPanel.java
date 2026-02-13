@@ -26,6 +26,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private ArrayList<BoardPiece> pieces;
     private Image[] chess_pieces;
     private Game game;
+    private boolean engineThinking = false;
 
     public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) {
         setFocusable(true);
@@ -40,6 +41,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     public void makeEngineMove() {
         if (!game.isWhiteTurn()) {
+            engineThinking = true;
             SwingWorker<String, Void> worker = new SwingWorker<>() {
                 @Override
                 protected String doInBackground() throws Exception {
@@ -52,9 +54,11 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
                         String move = get();
                         System.out.println(move);
                         game.makeMove(move);
-                        repaint();
                     } catch (ExecutionException | InterruptedException e) {
                         throw new RuntimeException(e);
+                    } finally {
+                        engineThinking = false;
+                        repaint();
                     }
                 }
             };
@@ -87,11 +91,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if (engineThinking) return;
         game.selectPiece(e.getX(), e.getY());
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (engineThinking) return;
         game.dropPiece(e.getX(), e.getY());
         repaint();
     }
@@ -108,6 +114,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        if (engineThinking) return;
         game.movePiece(e.getX(), e.getY());
         repaint();
     }
