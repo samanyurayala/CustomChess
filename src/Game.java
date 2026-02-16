@@ -5,10 +5,9 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class Game {
-    private boolean engineMoveMade = false;
+    private Engine engine;
     private BoardPiece selectedPiece = null;
     private ArrayList<BoardPiece> pieces;
     private boolean isWhiteTurn;
@@ -18,6 +17,7 @@ public class Game {
     private final Icon[] PROMOTION;
     private int turn;
     private int turnTill50MoveRule;
+    private boolean isEnd;
     private final Map<Integer, Class<? extends BoardPiece>> PROMOTION_MAP = Map.of(
             3, Queen.class,
             2, Rook.class,
@@ -60,13 +60,17 @@ public class Game {
             Pawn.class, 'p',
             King.class, 'k'
     );
+    private final Map<Character, Integer> CHAR_MAP3 = Map.of(
+            'q', 3,
+            'r', 2,
+            'b', 1,
+            'n', 0
+    );
     public final boolean[] whiteCastle = {true, true};
     public final boolean[] blackCastle = {true, true};
     public static final int BOARD_SIZE = 8;
     public static final int LEFT_FILE = 0, TOP_RANK = 0;
     public static final int RIGHT_FILE = 7, BOTTOM_RANK = 7;
-
-    Engine engine = new Engine("minimalChess");
 
     public Game(int size, String fen) {
         this.SIZE = size;
@@ -74,6 +78,7 @@ public class Game {
         pieces = readFEN(fen);
         SOUND = new Sound();
         PROMOTION = new Icon[]{new ImageIcon(CHESS_PIECE_IMGS[3]), new ImageIcon(CHESS_PIECE_IMGS[2]), new ImageIcon(CHESS_PIECE_IMGS[4]), new ImageIcon(CHESS_PIECE_IMGS[1]), new ImageIcon(CHESS_PIECE_IMGS[9]), new ImageIcon(CHESS_PIECE_IMGS[8]), new ImageIcon(CHESS_PIECE_IMGS[10]), new ImageIcon(CHESS_PIECE_IMGS[7])};
+        isEnd = false;
     }
 
     public void movePiece(int x, int y) {
@@ -98,6 +103,10 @@ public class Game {
         Vector2d oldSquare = new Vector2d(SQUARE_MAP.get(moveSquare[0].charAt(0)), 8 - Integer.parseInt(moveSquare[1]));
         BoardPiece piece = getPieceXPosYPos(oldSquare.x, oldSquare.y);
         Vector2d newSquare = new Vector2d(SQUARE_MAP.get(moveSquare[2].charAt(0)), 8 - Integer.parseInt(moveSquare[3]));
+        if (moveSquare.length == 5) {
+            promote(CHAR_MAP3.get(moveSquare[4].charAt(0)), piece);
+            piece = getPieceXPosYPos(oldSquare.x, oldSquare.y);
+        }
         move(newSquare.x, newSquare.y, piece);
     }
 
@@ -165,7 +174,7 @@ public class Game {
             }
         }
         if (piece instanceof Pawn) {
-            if ((piece.isWhite() && piece.getYPos() == 0) || (!piece.isWhite() && piece.getYPos() == 7)) {
+            if (((piece.isWhite() && piece.getYPos() == 0) || (!piece.isWhite() && piece.getYPos() == 7)) && !(engine != null && engine.isThinking())) {
                 Icon[] PROMOTIONS = piece.isWhite() ? Arrays.copyOfRange(PROMOTION, 0, 4) : Arrays.copyOfRange(PROMOTION, 4, PROMOTION.length);
                 int choice = JOptionPane.showOptionDialog(null, null, "Promote", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, new ImageIcon(), PROMOTIONS, null);
                 if (choice == -1) {
@@ -195,10 +204,8 @@ public class Game {
             playPromote = false;
         }
         if (getAllLegalMoves(isWhiteTurn).isEmpty()) {
-            if (kingInCheck) {
-                SOUND.playEnd();
-            }
-            else SOUND.playEnd();
+            SOUND.playEnd();
+            isEnd = true;
         }
         if (playCapture) SOUND.playCapture();
         if (playMove) SOUND.playMove();
@@ -334,7 +341,7 @@ public class Game {
         return pieces;
     }
 
-    public String readFenFromPosition(ArrayList<BoardPiece> pieces) {
+    public String readFenFromPosition() {
         StringBuilder fen = new StringBuilder();
         for (int currentRank = 0; currentRank < Game.BOARD_SIZE; currentRank++) {
             int counter = 0;
@@ -402,12 +409,12 @@ public class Game {
         return pieces;
     }
 
-    public boolean isEngineMoveMade() {
-        return engineMoveMade;
+    public Engine getEngine() {
+        return engine;
     }
 
-    public void setEngineMoveMade(boolean engineMoveMade) {
-        this.engineMoveMade = engineMoveMade;
+    public void setEngine(Engine engine) {
+        this.engine = engine;
     }
 
     public Image[] getChessPieceImgs() {
@@ -416,5 +423,9 @@ public class Game {
 
     public boolean isWhiteTurn() {
         return isWhiteTurn;
+    }
+
+    public boolean isEnd() {
+        return isEnd;
     }
 }

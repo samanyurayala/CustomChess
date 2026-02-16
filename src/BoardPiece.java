@@ -105,6 +105,10 @@ public class BoardPiece {
         this.yPos = yPos;
     }
 
+    public Vector2d getVecPos() {
+        return new Vector2d(getXPos(), getYPos());
+    }
+
     public boolean isEnpassant() {
         return enpassant;
     }

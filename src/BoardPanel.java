@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
+public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener {
     private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
             King.class, 0,
             Queen.class, 1,
@@ -22,42 +22,60 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     );
     private final Color LIGHT_COLOR = new Color(0xEAE9D2);
     private final Color DARK_COLOR = new Color(0x4B7399);
+    private final Color MEDIUM_COLOR = new Color(0x8EB2C2);
     private final int SIZE;
     private ArrayList<BoardPiece> pieces;
     private Image[] chess_pieces;
     private Game game;
-    private boolean engineThinking = false;
+    private boolean engineThinking;
+    private Timer timer;
 
     public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) {
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_L, mask), "loadGame");
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_R, mask), "reset");
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_N, mask), "customGame");
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E, mask), "engineMenu");
+        this.getActionMap().put("loadGame", new AbstractAction() { @Override public void actionPerformed(ActionEvent e) {loadGame();}});
+        this.getActionMap().put("reset", new AbstractAction() { @Override public void actionPerformed(ActionEvent e) {reset();}});
+        this.getActionMap().put("customGame", new AbstractAction() { @Override public void actionPerformed(ActionEvent e) {customGame();}});
+        this.getActionMap().put("engineMenu", new AbstractAction() { @Override public void actionPerformed(ActionEvent e) {engineMenu();}});
         setFocusable(true);
         this.SIZE = size;
         this.pieces = pieces;
         this.chess_pieces = chess_pieces;
         this.game = chessGame;
+        engineThinking = false;
         addMouseListener(this);
         addMouseMotionListener(this);
-        addKeyListener(this);
     }
 
     public void makeEngineMove() {
-        if (!game.isWhiteTurn()) {
+        Engine engine = game.getEngine();
+        if (game.isEnd()) {
+            engine.close();
+            return;
+        }
+        if (engine == null) return;
+        if (game.isWhiteTurn() == engine.isWhite()) {
             engineThinking = true;
+            engine.setThinking(true);
             SwingWorker<String, Void> worker = new SwingWorker<>() {
                 @Override
-                protected String doInBackground() throws Exception {
-                    return game.engine.bestMove(game.readFenFromPosition(pieces));
+                protected String doInBackground() {
+                    return game.getEngine().bestMove(game.readFenFromPosition());
                 }
 
                 @Override
                 protected void done() {
                     try {
                         String move = get();
-                        System.out.println(move);
                         game.makeMove(move);
                     } catch (ExecutionException | InterruptedException e) {
                         throw new RuntimeException(e);
                     } finally {
                         engineThinking = false;
+                        engine.setThinking(false);
                         repaint();
                     }
                 }
@@ -124,31 +142,6 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-        if (e.getKeyChar() == 'l') {
-            loadGame();
-        }
-        if (e.getKeyChar() == 'r') {
-            game = new Game(SIZE, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Starting game FEN
-            pieces = game.getPieces();
-            repaint();
-        }
-        if (e.getKeyChar() == 'c') {
-            customGame();
-        }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-
-    }
-
     public void loadGame() {
         JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
         chooser.setDialogTitle("Select Game");
@@ -170,13 +163,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     public void customGame() {
-        JDialog dialog = new JDialog(new Frame(), "Custom Game", true);
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Custom Game", Dialog.ModalityType.APPLICATION_MODAL);
         JLayeredPane pane = new JLayeredPane();
         pane.setLayout(null);
         pane.setPreferredSize(new Dimension(SIZE * 6, SIZE * 4));
         dialog.setLayout(new BorderLayout());
         EditPanel edit = new EditPanel(SIZE / 2, new ArrayList<>(), chess_pieces, game);
-        edit.setBounds(0, 0, SIZE * 7, SIZE * 4);
+        edit.setBounds(0, 0, SIZE * 6, SIZE * 4);
         pane.add(edit, JLayeredPane.DEFAULT_LAYER);
         JButton turn = new JButton("White to move");
         turn.addActionListener(e -> {
@@ -195,9 +188,12 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         start.addActionListener(e -> {
             String fen = edit.getFen();
             if (fen.equals("Not valid position")) return;
+            if (game.getEngine() != null) game.getEngine().close();
+            game.setEngine(null);
             game = new Game(SIZE, fen);
             pieces = game.getPieces();
             repaint();
+            dialog.dispose();
         });
         start.setBounds(SIZE * 4, SIZE * 3, SIZE / 2, SIZE / 2);
         start.setFont(new Font("Rubik", Font.BOLD, 12));
@@ -237,6 +233,42 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         pane.add(blackCastleKing, JLayeredPane.PALETTE_LAYER);
         pane.add(blackCastleQueen, JLayeredPane.PALETTE_LAYER);
         dialog.add(pane, BorderLayout.CENTER);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    public void reset() {
+        game = new Game(SIZE, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Starting game FEN
+        pieces = game.getPieces();
+        repaint();
+    }
+
+    public void engineMenu() {
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "New Engine", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.getContentPane().setBackground(MEDIUM_COLOR);
+
+        JComboBox<String> combo = new JComboBox<>(new String[]{"None", "Stockfish (3000+ elo)", "MinimalChess (1500 elo)"});
+        combo.setFont(new Font("Rubik", Font.PLAIN, 14));
+        JComboBox<String> side = new JComboBox<>(new String[]{"Black", "White"});
+        side.setFont(new Font("Rubik", Font.PLAIN, 14));
+        JButton ok = new JButton("OK");
+        ok.setFont(new Font("Rubik", Font.BOLD, 14));
+        ok.addActionListener(e -> {
+            String selected = (String) combo.getSelectedItem();
+            String selectedSide = (String) side.getSelectedItem();
+            if (selected == null || selectedSide == null || selected.equals("None")) {
+                game.setEngine(null);
+            } else {
+                game.setEngine(new Engine(selected.split("\\s+")[0].toLowerCase(), selectedSide.equals("White")));
+            }
+            repaint();
+            dialog.dispose();
+        });
+        dialog.setLayout(new BorderLayout());
+        dialog.add(combo, BorderLayout.NORTH);
+        dialog.add(side, BorderLayout.CENTER);
+        dialog.add(ok, BorderLayout.SOUTH);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);

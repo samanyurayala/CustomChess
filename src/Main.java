@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 public class Main {
@@ -15,7 +17,17 @@ public class Main {
         frame.add(panel);
         frame.pack();
         frame.setLocation(10, 10);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (chessGame.getEngine() != null) {
+                    chessGame.getEngine().close();
+                }
+                frame.dispose();
+                System.exit(0);
+            }
+        });
         frame.setVisible(true);
     }
 }

@@ -95,7 +95,8 @@ public class King extends BoardPiece {
     }
 
     public boolean[] canCastle(Game board) {
-        if (hasMoved() || isInCheck(board)) return new boolean[]{false, false};
+        Vector2d startingSquare = (isWhite()) ? new Vector2d(4, 7) : new Vector2d(4, 0);
+        if (hasMoved() || !getVecPos().equals(startingSquare) || isInCheck(board)) return new boolean[]{false, false};
         boolean[] castle = new boolean[2];
         ArrayList<BoardPiece> rooks = board.getPiece(Rook.class, isWhite());
         BoardPiece rook1 = null;
@@ -134,13 +135,9 @@ public class King extends BoardPiece {
             if (rook.getXPos() == 7 && rook.getYPos() == yValue) rook1 = rook;
             if (rook.getXPos() == 0 && rook.getYPos() == yValue) rook2 = rook;
         }
-        if (hasMoved() || (rook1 != null && rook1.hasMoved())) castle[1] = false;
-        if (hasMoved() || (rook2 != null && rook2.hasMoved())) castle[0] = false;
+        Vector2d startingSquare = (isWhite()) ? new Vector2d(4, 7) : new Vector2d(4, 0);
+        if (hasMoved() || !getVecPos().equals(startingSquare) || rook1 == null || rook1.hasMoved()) castle[1] = false;
+        if (hasMoved() || !getVecPos().equals(startingSquare) || rook2 == null || rook2.hasMoved()) castle[0] = false;
         return castle;
-    }
-
-    public boolean[] isCastling(Game board) {
-        canCastle(board);
-        return new boolean[]{queenSideCastling, kingSideCastling};
     }
 }
