@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-public class EditPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
+public class EditPanel extends JPanel implements MouseListener, MouseMotionListener {
     private final Map<Class<? extends BoardPiece>, Integer> SPRITES = Map.of(
             King.class, 0,
             Queen.class, 1,
@@ -36,9 +36,13 @@ public class EditPanel extends JPanel implements MouseListener, MouseMotionListe
     private boolean isWhiteTurn;
     private boolean[] whiteCanCastle;
     private boolean[] blackCanCastle;
+    private Map<String, Image> customPieces = Map.of();
 
     public EditPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) {
         setFocusable(true);
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_N, mask), "upload");
+        this.getActionMap().put("upload", new AbstractAction() { @Override public void actionPerformed(ActionEvent e) {upload();}});
         this.SIZE = size;
         this.pieces = pieces;
         this.chess_pieces = Arrays.copyOfRange(chess_pieces, 12, 24);
@@ -141,20 +145,6 @@ public class EditPanel extends JPanel implements MouseListener, MouseMotionListe
 
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-
-    }
 
     public String readFenFromPosition(ArrayList<BoardPiece> pieces) {
         if (!isValidPosition()) return "Not valid position";
@@ -223,5 +213,29 @@ public class EditPanel extends JPanel implements MouseListener, MouseMotionListe
 
     public boolean[] getBlackCanCastle() {
         return blackCanCastle;
+    }
+
+    public Map<String, Image> getCustomPieces() {
+        return customPieces;
+    }
+
+    public void setCustomPieces(Map<String, Image> customPieces) {
+        this.customPieces = customPieces;
+    }
+
+    public void upload() {
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Upload Piece", Dialog.ModalityType.APPLICATION_MODAL);
+        JLayeredPane pane = new JLayeredPane();
+        pane.setLayout(null);
+        pane.setPreferredSize(new Dimension(SIZE * 3, SIZE * 3));
+        dialog.setLayout(new BorderLayout());
+        CustomPiecePanel upload = new CustomPiecePanel(SIZE / 2);
+        upload.setCustomPieces(customPieces);
+        upload.setBounds(0, 0, SIZE * 3, SIZE * 3);
+        pane.add(upload, JLayeredPane.DEFAULT_LAYER);
+        dialog.add(pane, BorderLayout.CENTER);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }

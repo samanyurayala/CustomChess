@@ -18,6 +18,7 @@ public class Game {
     private int turn;
     private int turnTill50MoveRule;
     private boolean isEnd;
+    private Map<String, Image> customPieces = Map.of();
     private final Map<Integer, Class<? extends BoardPiece>> PROMOTION_MAP = Map.of(
             3, Queen.class,
             2, Rook.class,
@@ -427,5 +428,13 @@ public class Game {
 
     public boolean isEnd() {
         return isEnd;
+    }
+
+    public Map<String, Image> getCustomPieces() {
+        return customPieces;
+    }
+
+    public void setCustomPieces(Map<String, Image> customPieces) {
+        this.customPieces = customPieces;
     }
 }

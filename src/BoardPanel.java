@@ -25,10 +25,9 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private final Color MEDIUM_COLOR = new Color(0x8EB2C2);
     private final int SIZE;
     private ArrayList<BoardPiece> pieces;
-    private Image[] chess_pieces;
+    private final Image[] chess_pieces;
     private Game game;
     private boolean engineThinking;
-    private Timer timer;
 
     public BoardPanel(int size, ArrayList<BoardPiece> pieces, Image[] chess_pieces, Game chessGame) {
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
@@ -52,7 +51,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     public void makeEngineMove() {
         Engine engine = game.getEngine();
-        if (game.isEnd()) {
+        if (game.isEnd() && engine != null) {
             engine.close();
             return;
         }
@@ -169,6 +168,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         pane.setPreferredSize(new Dimension(SIZE * 6, SIZE * 4));
         dialog.setLayout(new BorderLayout());
         EditPanel edit = new EditPanel(SIZE / 2, new ArrayList<>(), chess_pieces, game);
+        edit.setCustomPieces(game.getCustomPieces());
         edit.setBounds(0, 0, SIZE * 6, SIZE * 4);
         pane.add(edit, JLayeredPane.DEFAULT_LAYER);
         JButton turn = new JButton("White to move");
